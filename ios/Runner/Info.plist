@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>NSCameraUsageDescription</key>
-  <string>We need camera access for AR furniture visualization</string>
+<string>We need camera access for AR furniture visualization</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
