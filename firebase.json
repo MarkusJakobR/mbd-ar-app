@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"ios":{"default":{"projectId":"mbd-ar-app","appId":"1:177193351492:ios:716ea230f5b62a07f1ff11","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"mbd-ar-app","configurations":{"ios":"1:177193351492:ios:716ea230f5b62a07f1ff11"}}}}}}
