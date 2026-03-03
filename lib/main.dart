@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'services/firestore_service.dart';
+import 'models/product.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,8 +25,10 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firestoreService = FirestoreService();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Maquiling Builders Depot')),
+      appBar: AppBar(title: const Text('Furniture Catalog')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
