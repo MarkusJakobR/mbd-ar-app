@@ -1,0 +1,55 @@
+{
+  "products": {
+    "product_001": {
+      "name": "Modern Chair",
+      "brand": "IKEA",
+      "description": "Comfortable modern dining chair",
+      "price": 299,
+      "category": "chairs",
+      "furnitureType": "free-standing furniture",
+      "material": "wood",
+      "dimensions": {
+        "height": 85,
+        "width": 45,
+        "length": 50,
+        "unit": "cm"
+      },
+      "imageUrl": "https://via.placeholder.com/150",
+      "modelUrl": "https://example.com/chair.glb"
+    },
+    "product_002": {
+      "name": "Wooden Table",
+      "brand": "IKEA",
+      "description": "Beautiful oak dining table",
+      "price": 599,
+      "category": "tables",
+      "furnitureType": "free-standing furniture",
+      "material": "wood",
+      "dimensions": {
+        "height": 75,
+        "width": 120,
+        "length": 80,
+        "unit": "cm"
+      },
+      "imageUrl": "https://via.placeholder.com/150",
+      "modelUrl": "https://example.com/table.glb"
+    },
+    "product_003": {
+      "name": "Leather Sofa",
+      "brand": "Ashley",
+      "description": "Comfortable 3-seater sofa",
+      "price": 899,
+      "category": "sofas",
+      "furnitureType": "free-standing furniture",
+      "material": "leather",
+      "dimensions": {
+        "height": 85,
+        "width": 200,
+        "length": 90,
+        "unit": "cm"
+      },
+      "imageUrl": "https://via.placeholder.com/150",
+      "modelUrl": "https://example.com/sofa.glb"
+    }
+  }
+}

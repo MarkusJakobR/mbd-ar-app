@@ -29,38 +29,70 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Furniture Catalog')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Firebase Connected', style: TextStyle(fontSize: 24)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ARViewPage()),
-                );
-              },
-              child: const Text('Go to Unity AR'),
-            ),
-          ],
-        ),
+      body: StreamBuilder<List<Product>>(
+        stream: firestoreService.getProducts(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final products = snapshot.data ?? [];
+
+          if (products.isEmpty) {
+            return const Center(child: Text('No products found.'));
+          }
+
+          return ListView.builder(
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+
+              return Card(
+                margin: const EdgeInsets.all(8),
+                child: ListTile(
+                  leading: const Icon(Icons.chair, size: 40),
+                  title: Text(product.name),
+                  subtitle: Text(
+                    '${product.brand} • ${product.price.toStringAsFixed(2)}\n'
+                    '${product.height} x ${product.width} x ${product.length} ${product.unit}',
+                  ),
+                  isThreeLine: true,
+                  trailing: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ARViewPage(product: product),
+                        ),
+                      );
+                    },
+                    child: const Text('View in AR'),
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 }
 
 class ARViewPage extends StatelessWidget {
-  const ARViewPage({super.key});
+  final Product product;
+  const ARViewPage({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('AR View')),
+      appBar: AppBar(title: Text(product.name)),
       body: UnityWidget(
         onUnityCreated: (controller) {
-          print('Unity loaded!');
+          print('Unity loaded for ${product.name}');
         },
       ),
     );

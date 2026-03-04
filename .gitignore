@@ -99,3 +99,7 @@ ios/Runner/GoogleService-Info.plist
 ios/firebase_app_id_file.json
 .firebaserc
 firebase-debug.log
+serviceAccountKey.json
+
+# NPM
+node_modules

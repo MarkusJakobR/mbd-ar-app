@@ -47,6 +47,6 @@ class Product {
   // Helper getters for dimensions
   double get height => (dimensions['height'] ?? 0).toDouble();
   double get width => (dimensions['width'] ?? 0).toDouble();
-  double get depth => (dimensions['depth'] ?? 0).toDouble();
+  double get length => (dimensions['length'] ?? 0).toDouble();
   String get unit => dimensions['unit'] ?? 'cm';
 }

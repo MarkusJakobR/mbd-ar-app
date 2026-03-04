@@ -1,0 +1,27 @@
+{
+  "name": "mbd_ar_app",
+  "version": "1.0.0",
+  "description": "A new Flutter project.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarkusJakobR/mbd-ar-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MarkusJakobR/mbd-ar-app/issues"
+  },
+  "homepage": "https://github.com/MarkusJakobR/mbd-ar-app#readme",
+  "dependencies": {
+    "firebase-admin": "^13.7.0"
+  }
+}
