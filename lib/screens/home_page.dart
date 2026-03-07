@@ -12,6 +12,7 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Furniture Catalog'), elevation: 0),
+      backgroundColor: Colors.white,
       body: StreamBuilder<List<Product>>(
         stream: firestoreService.getProducts(),
         builder: (context, snapshot) {
