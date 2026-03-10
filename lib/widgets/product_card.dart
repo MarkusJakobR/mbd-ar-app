@@ -39,52 +39,39 @@ class ProductCard extends StatelessWidget {
                     top: Radius.circular(12),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 48, 12, 12),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Image.asset(
+                          'assets/images/chair_001.png',
+                          width: double.infinity,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
-                    child: Image.asset(
-                      'assets/images/chair_001.png',
-                      width: double.infinity,
-                      fit: BoxFit.contain,
+
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.favorite_border,
+                        ), // Unfilled heart
+                        // icon: const Icon(Icons.favorite), // Filled heart (for favorited state)
+                        color: Colors.grey[700],
+                        iconSize: 24,
+                        onPressed: () {
+                          // TODO: Add favorite functionality
+                          print('Favorite tapped for ${product.name}');
+                        },
+                      ),
                     ),
-                  ),
-                  // child: product.imageUrl.isNotEmpty
-                  //     ? Image.network(
-                  //         product.imageUrl,
-                  //         width: double.infinity,
-                  //         fit: BoxFit.contain,
-                  //         loadingBuilder: (context, child, loadingProgress) {
-                  //           if (loadingProgress == null) return child;
-                  //           return Center(
-                  //             child: CircularProgressIndicator(
-                  //               value:
-                  //                   loadingProgress.expectedTotalBytes != null
-                  //                   ? loadingProgress.cumulativeBytesLoaded /
-                  //                         loadingProgress.expectedTotalBytes!
-                  //                   : null,
-                  //             ),
-                  //           );
-                  //         },
-                  //         errorBuilder: (context, error, stackTrace) {
-                  //           return Center(
-                  //             child: Icon(
-                  //               Icons.broken_image,
-                  //               size: 40,
-                  //               color: Colors.grey[400],
-                  //             ),
-                  //           );
-                  //         },
-                  //       )
-                  //     : Center(
-                  //         child: Icon(
-                  //           Icons.chair,
-                  //           size: 60,
-                  //           color: Colors.grey[400],
-                  //         ),
-                  //       ),
+                  ],
                 ),
               ),
             ),
@@ -111,13 +98,13 @@ class ProductCard extends StatelessWidget {
                     // Brand
                     Text(
                       product.brand,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                     ),
 
                     // Dimensions
                     Text(
                       '${product.height.toStringAsFixed(0)} x ${product.width.toStringAsFixed(0)} x ${product.length.toStringAsFixed(0)} ${product.unit}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                     ),
 
                     const SizedBox(height: 4),
@@ -126,9 +113,9 @@ class ProductCard extends StatelessWidget {
                     Text(
                       '₱${product.price.toStringAsFixed(2)}',
                       style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF2C2A6D),
                       ),
                     ),
                   ],
