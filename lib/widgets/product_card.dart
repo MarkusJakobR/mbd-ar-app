@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../screens/ar_view_page.dart';
+import '../screens/product_detail_page.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -21,7 +21,7 @@ class ProductCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ARViewPage(product: product),
+              builder: (context) => ProductDetailPage(product: product),
             ),
           );
         },
