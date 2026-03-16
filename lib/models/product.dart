@@ -49,4 +49,12 @@ class Product {
   double get width => (dimensions['width'] ?? 0).toDouble();
   double get length => (dimensions['length'] ?? 0).toDouble();
   String get unit => dimensions['unit'] ?? 'cm';
+
+  bool matchesSearch(String query) {
+    final lowercaseQuery = query.toLowerCase();
+    return name.toLowerCase().contains(lowercaseQuery) ||
+        material.toLowerCase().contains(lowercaseQuery) ||
+        category.toLowerCase().contains(lowercaseQuery) ||
+        brand.toLowerCase().contains(lowercaseQuery);
+  }
 }

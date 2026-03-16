@@ -2,16 +2,37 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/firestore_service.dart';
 import '../widgets/product_grid.dart';
+import '../widgets/product_search_delegate.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final firestoreService = FirestoreService();
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  final firestoreService = FirestoreService();
+  List<Product> products = [];
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Furniture Catalog'), elevation: 0),
+      appBar: AppBar(
+        title: const Text('Furniture Catalog'),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: ProductSearchDelegate(allProducts: products),
+              );
+            },
+          ),
+        ],
+      ),
       backgroundColor: Colors.white,
       body: StreamBuilder<List<Product>>(
         stream: firestoreService.getProducts(),
@@ -24,7 +45,7 @@ class HomePage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final products = snapshot.data ?? [];
+          products = snapshot.data ?? [];
 
           if (products.isEmpty) {
             return const Center(
