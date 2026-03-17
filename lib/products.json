@@ -1,9 +1,9 @@
 {
   "products": {
     "product_001": {
-      "name": "Modern Chair",
+      "name": "Rocking Chair",
       "brand": "IKEA",
-      "description": "Comfortable modern dining chair",
+      "description": "Comfy seat with wooden curved legs",
       "price": 299,
       "category": "chairs",
       "furnitureType": "free-standing furniture",
@@ -14,16 +14,16 @@
         "length": 50,
         "unit": "cm"
       },
-      "imageUrl": "https://via.placeholder.com/150",
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/rocking_chair.jpeg",
       "modelUrl": "https://example.com/chair.glb"
     },
     "product_002": {
-      "name": "Wooden Table",
+      "name": "White Modern Door",
       "brand": "IKEA",
-      "description": "Beautiful oak dining table",
+      "description": "Clean white modern door",
       "price": 599,
-      "category": "tables",
-      "furnitureType": "free-standing furniture",
+      "category": "doors",
+      "furnitureType": "architectural fixture",
       "material": "wood",
       "dimensions": {
         "height": 75,
@@ -31,230 +31,145 @@
         "length": 80,
         "unit": "cm"
       },
-      "imageUrl": "https://via.placeholder.com/150",
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/white_wooden_door.png",
       "modelUrl": "https://example.com/table.glb"
     },
     "product_003": {
-      "name": "Leather Sofa",
+      "name": "Storage Cabinet",
       "brand": "Ashley",
-      "description": "Comfortable 3-seater sofa",
+      "description": "Brown wooden cabinet for storage",
       "price": 899,
-      "category": "sofas",
+      "category": "cabinets",
       "furnitureType": "free-standing furniture",
-      "material": "leather",
+      "material": "wood",
       "dimensions": {
         "height": 85,
         "width": 200,
         "length": 90,
         "unit": "cm"
       },
-      "imageUrl": "https://via.placeholder.com/150",
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/storage_cabinet_brown.jpeg",
       "modelUrl": "https://example.com/sofa.glb"
-    }
-  },
+    },
 
-  "product_004": {
-    "name": "Office Desk",
-    "brand": "Herman Miller",
-    "description": "Ergonomic height-adjustable desk",
-    "price": 799,
-    "category": "desks",
-    "furnitureType": "free-standing furniture",
-    "material": "wood",
-    "dimensions": {
-      "height": 75,
-      "width": 140,
-      "length": 70,
-      "unit": "cm"
+    "product_004": {
+      "name": "Wooden Door",
+      "brand": "Doorz",
+      "description": "Brown wooden door",
+      "price": 799,
+      "category": "doors",
+      "furnitureType": "architectural fixture",
+      "material": "wood",
+      "dimensions": {
+        "height": 75,
+        "width": 140,
+        "length": 70,
+        "unit": "cm"
+      },
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/brown_wooden_door.jpeg",
+      "modelUrl": "https://example.com/desk.glb"
     },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/desk.glb"
-  },
-  "product_005": {
-    "name": "Bookshelf",
-    "brand": "IKEA",
-    "description": "5-tier wooden bookshelf",
-    "price": 399,
-    "category": "shelves",
-    "furnitureType": "free-standing furniture",
-    "material": "wood",
-    "dimensions": {
-      "height": 180,
-      "width": 80,
-      "length": 30,
-      "unit": "cm"
+    "product_005": {
+      "name": "Religious Door",
+      "brand": "INC",
+      "description": "Wooden door with engraved cross",
+      "price": 399,
+      "category": "doors",
+      "furnitureType": "architectural fixture",
+      "material": "wood",
+      "dimensions": {
+        "height": 180,
+        "width": 80,
+        "length": 30,
+        "unit": "cm"
+      },
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/cross_wooden_door.jpeg",
+      "modelUrl": "https://example.com/bookshelf.glb"
     },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/bookshelf.glb"
-  },
-  "product_006": {
-    "name": "Coffee Table",
-    "brand": "West Elm",
-    "description": "Mid-century modern coffee table",
-    "price": 449,
-    "category": "tables",
-    "furnitureType": "free-standing furniture",
-    "material": "wood",
-    "dimensions": {
-      "height": 45,
-      "width": 100,
-      "length": 60,
-      "unit": "cm"
+    "product_006": {
+      "name": "White Cabinet",
+      "brand": "West Elm",
+      "description": "Six-drawer white wooden cabinet",
+      "price": 449,
+      "category": "cabinets",
+      "furnitureType": "free-standing furniture",
+      "material": "wood",
+      "dimensions": {
+        "height": 45,
+        "width": 100,
+        "length": 60,
+        "unit": "cm"
+      },
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/white_cabinet.jpeg",
+      "modelUrl": "https://example.com/coffee-table.glb"
     },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/coffee-table.glb"
-  },
-  "product_007": {
-    "name": "King Bed Frame",
-    "brand": "Ashley",
-    "description": "Upholstered king bed with storage",
-    "price": 1299,
-    "category": "beds",
-    "furnitureType": "free-standing furniture",
-    "material": "fabric",
-    "dimensions": {
-      "height": 120,
-      "width": 193,
-      "length": 203,
-      "unit": "cm"
+    "product_007": {
+      "name": "Marble Table",
+      "brand": "Ashley",
+      "description": "Round table with marble top",
+      "price": 1299,
+      "category": "tables",
+      "furnitureType": "free-standing furniture",
+      "material": "marble",
+      "dimensions": {
+        "height": 120,
+        "width": 193,
+        "length": 203,
+        "unit": "cm"
+      },
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/marble_round_table.jpeg",
+      "modelUrl": "https://example.com/bed.glb"
     },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/bed.glb"
-  },
-  "product_008": {
-    "name": "Bar Stool",
-    "brand": "CB2",
-    "description": "Industrial metal bar stool",
-    "price": 199,
-    "category": "chairs",
-    "furnitureType": "free-standing furniture",
-    "material": "metal",
-    "dimensions": {
-      "height": 75,
-      "width": 40,
-      "length": 40,
-      "unit": "cm"
+    "product_008": {
+      "name": "Wood Table",
+      "brand": "CB2",
+      "description": "Round table made in wood",
+      "price": 199,
+      "category": "table",
+      "furnitureType": "free-standing furniture",
+      "material": "wood",
+      "dimensions": {
+        "height": 75,
+        "width": 40,
+        "length": 40,
+        "unit": "cm"
+      },
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/wooden_round_table.jpeg",
+      "modelUrl": "https://example.com/barstool.glb"
     },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/barstool.glb"
-  },
-  "product_009": {
-    "name": "TV Stand",
-    "brand": "IKEA",
-    "description": "Modern TV console with drawers",
-    "price": 349,
-    "category": "tv-stands",
-    "furnitureType": "free-standing furniture",
-    "material": "wood",
-    "dimensions": {
-      "height": 50,
-      "width": 150,
-      "length": 40,
-      "unit": "cm"
+    "product_009": {
+      "name": "Folding Table",
+      "brand": "IKEA",
+      "description": "Table that can be folded in half",
+      "price": 349,
+      "category": "tables",
+      "furnitureType": "free-standing furniture",
+      "material": "plastic",
+      "dimensions": {
+        "height": 50,
+        "width": 150,
+        "length": 40,
+        "unit": "cm"
+      },
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/folding_table.jpeg",
+      "modelUrl": "https://example.com/tv-stand.glb"
     },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/tv-stand.glb"
-  },
-  "product_010": {
-    "name": "Dining Chair Set",
-    "brand": "Crate & Barrel",
-    "description": "Set of 4 upholstered dining chairs",
-    "price": 899,
-    "category": "chairs",
-    "furnitureType": "free-standing furniture",
-    "material": "fabric",
-    "dimensions": {
-      "height": 90,
-      "width": 50,
-      "length": 55,
-      "unit": "cm"
-    },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/dining-chairs.glb"
-  },
-  "product_011": {
-    "name": "Wardrobe",
-    "brand": "IKEA",
-    "description": "3-door wardrobe with mirror",
-    "price": 699,
-    "category": "wardrobes",
-    "furnitureType": "free-standing furniture",
-    "material": "wood",
-    "dimensions": {
-      "height": 200,
-      "width": 150,
-      "length": 60,
-      "unit": "cm"
-    },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/wardrobe.glb"
-  },
-  "product_012": {
-    "name": "Accent Chair",
-    "brand": "West Elm",
-    "description": "Velvet accent armchair",
-    "price": 549,
-    "category": "chairs",
-    "furnitureType": "free-standing furniture",
-    "material": "fabric",
-    "dimensions": {
-      "height": 85,
-      "width": 75,
-      "length": 80,
-      "unit": "cm"
-    },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/accent-chair.glb"
-  },
-  "product_013": {
-    "name": "Side Table",
-    "brand": "CB2",
-    "description": "Marble top side table",
-    "price": 299,
-    "category": "tables",
-    "furnitureType": "free-standing furniture",
-    "material": "marble",
-    "dimensions": {
-      "height": 55,
-      "width": 45,
-      "length": 45,
-      "unit": "cm"
-    },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/side-table.glb"
-  },
-  "product_014": {
-    "name": "Loveseat",
-    "brand": "Ashley",
-    "description": "2-seater loveseat sofa",
-    "price": 649,
-    "category": "sofas",
-    "furnitureType": "free-standing furniture",
-    "material": "fabric",
-    "dimensions": {
-      "height": 85,
-      "width": 140,
-      "length": 90,
-      "unit": "cm"
-    },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/loveseat.glb"
-  },
-  "product_015": {
-    "name": "Nightstand",
-    "brand": "Crate & Barrel",
-    "description": "2-drawer bedside table",
-    "price": 249,
-    "category": "nightstands",
-    "furnitureType": "free-standing furniture",
-    "material": "wood",
-    "dimensions": {
-      "height": 60,
-      "width": 50,
-      "length": 40,
-      "unit": "cm"
-    },
-    "imageUrl": "https://via.placeholder.com/150",
-    "modelUrl": "https://example.com/nightstand.glb"
+    "product_010": {
+      "name": "Antique Chair",
+      "brand": "Crate & Barrel",
+      "description": "Set of 1, old-looking chair",
+      "price": 899,
+      "category": "chairs",
+      "furnitureType": "free-standing furniture",
+      "material": "wood",
+      "dimensions": {
+        "height": 90,
+        "width": 50,
+        "length": 55,
+        "unit": "cm"
+      },
+      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/antique_chair.jpeg",
+      "modelUrl": "https://example.com/dining-chairs.glb"
+    }
   }
 }
