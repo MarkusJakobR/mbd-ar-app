@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -230745548765777078}
   - component: {fileID: 5514279307115801737}
   m_Layer: 0
-  m_Name: ChairPrefab
+  m_Name: RockingChairPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
