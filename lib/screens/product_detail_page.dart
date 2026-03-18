@@ -145,9 +145,34 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           color: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Image.asset(
-              'assets/images/chair_001.png',
+            child: Image.network(
+              widget.product.imageUrl,
               fit: BoxFit.contain,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: const Color(0xFF2C2A6D),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                    SizedBox(height: 8),
+                    Text(
+                      "Image unavailable",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
