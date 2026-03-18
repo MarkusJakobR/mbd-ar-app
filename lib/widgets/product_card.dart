@@ -47,10 +47,36 @@ class ProductCard extends StatelessWidget {
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(12),
                         ),
-                        child: Image.asset(
-                          'assets/images/chair_001.png',
+                        child: Image.network(
+                          product
+                              .imageUrl, // This uses the URL from your database
                           width: double.infinity,
+                          height:
+                              200, // Explicit height helps prevent layout jumps
                           fit: BoxFit.contain,
+                          // Optional: Shows a progress indicator while downloading
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                          // Optional: Shows an icon if the URL is broken or 404
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),

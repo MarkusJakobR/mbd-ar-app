@@ -14,7 +14,7 @@
         "length": 50,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/rocking_chair.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/rocking_chair.jpeg",
       "modelUrl": "https://example.com/chair.glb"
     },
     "product_002": {
@@ -31,7 +31,7 @@
         "length": 80,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/white_wooden_door.png",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/white_wooden_door.png",
       "modelUrl": "https://example.com/table.glb"
     },
     "product_003": {
@@ -48,7 +48,7 @@
         "length": 90,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/storage_cabinet_brown.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/storage_cabinet_brown.jpeg",
       "modelUrl": "https://example.com/sofa.glb"
     },
 
@@ -66,7 +66,7 @@
         "length": 70,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/brown_wooden_door.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/brown_wooden_door.jpeg",
       "modelUrl": "https://example.com/desk.glb"
     },
     "product_005": {
@@ -83,7 +83,7 @@
         "length": 30,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/cross_wooden_door.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/cross_wooden_door.jpeg",
       "modelUrl": "https://example.com/bookshelf.glb"
     },
     "product_006": {
@@ -100,7 +100,7 @@
         "length": 60,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/white_cabinet.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/white_cabinet.jpeg",
       "modelUrl": "https://example.com/coffee-table.glb"
     },
     "product_007": {
@@ -117,7 +117,7 @@
         "length": 203,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/marble_round_table.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/marble_round_table.jpeg",
       "modelUrl": "https://example.com/bed.glb"
     },
     "product_008": {
@@ -134,7 +134,7 @@
         "length": 40,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/wooden_round_table.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/wooden_round_table.jpeg",
       "modelUrl": "https://example.com/barstool.glb"
     },
     "product_009": {
@@ -151,7 +151,7 @@
         "length": 40,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/folding_table.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/folding_table.jpeg",
       "modelUrl": "https://example.com/tv-stand.glb"
     },
     "product_010": {
@@ -168,7 +168,7 @@
         "length": 55,
         "unit": "cm"
       },
-      "imageUrl": "https://pub-55ed94563dc148918c102f5729d8d41d.r2.dev/temp_images/antique_chair.jpeg",
+      "imageUrl": "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_images/antique_chair.jpeg",
       "modelUrl": "https://example.com/dining-chairs.glb"
     }
   }

@@ -7,7 +7,10 @@ class Product {
   final String category;
   final String furnitureType;
   final String material;
-  final Map<String, dynamic> dimensions; // Changed from Map<String, double>
+  final int height;
+  final int width;
+  final int length;
+  final String unit;
   final String imageUrl;
   final String modelUrl;
   final DateTime createdAt;
@@ -21,34 +24,39 @@ class Product {
     required this.category,
     required this.furnitureType,
     required this.material,
-    required this.dimensions,
+    required this.height,
+    required this.width,
+    required this.length,
+    required this.unit,
     required this.imageUrl,
     required this.modelUrl,
     required this.createdAt,
   });
 
-  factory Product.fromFirestore(Map<String, dynamic> data, String id) {
+  factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
-      id: id,
-      name: data['name'] ?? '',
-      brand: data['brand'] ?? '',
-      description: data['description'] ?? '',
-      price: (data['price'] ?? 0).toDouble(),
-      category: data['category'] ?? '',
-      furnitureType: data['furnitureType'] ?? '',
-      material: data['material'] ?? '',
-      dimensions: Map<String, dynamic>.from(data['dimensions'] ?? {}),
-      imageUrl: data['imageUrl'] ?? '',
-      modelUrl: data['modelUrl'] ?? '',
-      createdAt: (data['createdAt'] as dynamic).toDate(),
+      id: map['id'],
+      name: map['name'] ?? '',
+      brand: map['brand'] ?? '',
+      description: map['description'] ?? '',
+      price: (map['price'] ?? 0).toDouble(),
+      category: map['category'] ?? '',
+      furnitureType: map['furniture_type'] ?? '',
+      material: map['material'] ?? '',
+      height: map['height'] ?? 0,
+      width: map['width'] ?? 0,
+      length: map['length'] ?? 0,
+      unit: map['unit'] ?? 'cm',
+      imageUrl: map['image_url'] ?? '',
+      modelUrl: map['model_url'] ?? '',
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(),
     );
   }
 
   // Helper getters for dimensions
-  double get height => (dimensions['height'] ?? 0).toDouble();
-  double get width => (dimensions['width'] ?? 0).toDouble();
-  double get length => (dimensions['length'] ?? 0).toDouble();
-  String get unit => dimensions['unit'] ?? 'cm';
+  String get dimensionsString => "$width x $height x $length $unit";
 
   bool matchesSearch(String query) {
     final lowercaseQuery = query.toLowerCase();

@@ -103,3 +103,5 @@ serviceAccountKey.json
 
 # NPM
 node_modules
+
+.env

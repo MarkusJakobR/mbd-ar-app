@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../services/firestore_service.dart';
+import '../services/supabase_service.dart';
 import '../widgets/product_grid.dart';
 import '../widgets/product_search_delegate.dart';
 
@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final firestoreService = FirestoreService();
+  final supabaseService = SupabaseService();
   List<Product> products = [];
 
   @override
@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: Colors.white,
       body: StreamBuilder<List<Product>>(
-        stream: firestoreService.getProducts(),
+        stream: supabaseService.getProductsStream(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
