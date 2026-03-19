@@ -16,6 +16,14 @@ class _HomePageState extends State<HomePage> {
   final supabaseService = SupabaseService();
   List<Product> products = [];
   String selectedFilter = '';
+  String? activeFilter;
+
+  void _handleFilterTap(String filterName) {
+    setState(() {
+      activeFilter = filterName;
+    });
+    Scaffold.of(context).openEndDrawer();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +48,8 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           FilterBar(
-            onFilterTap: (filterName) {
-              setState(() => selectedFilter = filterName);
-              Scaffold.of(context).openEndDrawer();
-            },
+            selectedFilter: activeFilter,
+            onFilterTap: _handleFilterTap,
           ),
           const Divider(height: 20),
 
