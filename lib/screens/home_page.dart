@@ -3,6 +3,7 @@ import '../models/product.dart';
 import '../services/supabase_service.dart';
 import '../widgets/product_grid.dart';
 import '../widgets/product_search_delegate.dart';
+import '../widgets/filter_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,6 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final supabaseService = SupabaseService();
   List<Product> products = [];
+  String selectedFilter = '';
 
   @override
   Widget build(BuildContext context) {
@@ -33,38 +35,53 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      // endDrawer: FilterDrawer(filterType: selectedFilter),
       backgroundColor: Colors.white,
-      body: StreamBuilder<List<Product>>(
-        stream: supabaseService.getProductsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+      body: Column(
+        children: [
+          FilterBar(
+            onFilterTap: (filterName) {
+              setState(() => selectedFilter = filterName);
+              Scaffold.of(context).openEndDrawer();
+            },
+          ),
+          const Divider(height: 20),
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          Expanded(
+            child: StreamBuilder<List<Product>>(
+              stream: supabaseService.getProductsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          products = snapshot.data ?? [];
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (products.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No products found',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
+                products = snapshot.data ?? [];
 
-          return ProductGrid(products: products);
-        },
+                if (products.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inbox, size: 80, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No products found',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ProductGrid(products: products);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
