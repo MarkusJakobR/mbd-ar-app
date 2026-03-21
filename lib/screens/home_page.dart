@@ -4,6 +4,7 @@ import '../services/supabase_service.dart';
 import '../widgets/product_grid.dart';
 import '../widgets/product_search_delegate.dart';
 import '../widgets/filter_bar.dart';
+import '../widgets/filter_drawer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,6 +14,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   final supabaseService = SupabaseService();
   List<Product> products = [];
   String selectedFilter = '';
@@ -22,12 +25,13 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       activeFilter = filterName;
     });
-    Scaffold.of(context).openEndDrawer();
+    _scaffoldKey.currentState?.openEndDrawer();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Furniture Catalog'),
         elevation: 0,
@@ -43,7 +47,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      // endDrawer: FilterDrawer(filterType: selectedFilter),
+      endDrawer: FilterDrawer(initialFilter: selectedFilter),
       backgroundColor: Colors.white,
       body: Column(
         children: [
