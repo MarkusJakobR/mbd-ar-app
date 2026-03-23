@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: -2111892255535885941}
   - component: {fileID: 2561372788322227652}
   - component: {fileID: 6287092461099568676}
+  - component: {fileID: 2222381745890339818}
+  - component: {fileID: -7159538612408872246}
   m_Layer: 0
   m_Name: BrownDoorPrefab
   m_TagString: Untagged
@@ -59,7 +61,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -222,12 +224,38 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.06081088, y: 2.0782483, z: 1.0399988}
   m_Center: {x: 0.0024742568, y: -0.0008455515, z: -0.0027147532}
+--- !u!114 &2222381745890339818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 753630644819937639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7755c34651d7546e5bffe076719041a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  placementType: 1
+--- !u!114 &-7159538612408872246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 753630644819937639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63676c30cc7dd42ecaf79b849e0c35a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  invalidMaterial: {fileID: 2100000, guid: 0cdf39016c4894aba995357444f59b5d, type: 2}
 --- !u!1001 &4682328130736652419
 PrefabInstance:
   m_ObjectHideFlags: 0

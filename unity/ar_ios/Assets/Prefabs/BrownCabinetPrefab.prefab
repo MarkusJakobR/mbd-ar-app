@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 8943078549242593441}
   - component: {fileID: 5427246319131463729}
   - component: {fileID: 2301453245434840808}
+  - component: {fileID: 8763699333321912795}
+  - component: {fileID: 1284445375909692870}
   m_Layer: 0
   m_Name: BrownCabinetPrefab
   m_TagString: Untagged
@@ -61,7 +63,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -224,12 +226,39 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.5164205, y: 0.8191425, z: 0.9005958}
   m_Center: {x: -0.008765638, y: 0.41367224, z: -0.0032107234}
+--- !u!114 &8763699333321912795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5052861392659541488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7755c34651d7546e5bffe076719041a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  placementType: 0
+--- !u!114 &1284445375909692870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5052861392659541488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63676c30cc7dd42ecaf79b849e0c35a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  validMaterial: {fileID: 0}
+  invalidMaterial: {fileID: 2100000, guid: 0cdf39016c4894aba995357444f59b5d, type: 2}
 --- !u!1 &8671356689428623093
 GameObject:
   m_ObjectHideFlags: 0
