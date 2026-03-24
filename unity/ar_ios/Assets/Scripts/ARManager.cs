@@ -8,6 +8,9 @@ public class ARManager : MonoBehaviour
     [SerializeField] private ARPlaceFurniture placeFurniture;
     [SerializeField] private bool useLocalPrefabForTesting = true;
 
+    // Editor testing — set this to whatever addressable key you want to test with
+    [SerializeField] private string editorTestKey = "brown_cabinet";
+
     private bool isInitialized = false;
 
     void Start()
@@ -25,7 +28,7 @@ public class ARManager : MonoBehaviour
 
         Debug.Log("Addressables initialized — loading remote catalog...");
 
-        string catalogUrl = "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_addressables/iOS/catalog_1.0.0.json";
+        string catalogUrl = "https://crczirzejyiyliizruyy.supabase.co/storage/v1/object/public/asset-storage/temp_addressables/iOS/catalog_catalog.json";
 
         var catalogHandle = Addressables.LoadContentCatalogAsync(catalogUrl);
         yield return catalogHandle;
@@ -41,6 +44,11 @@ public class ARManager : MonoBehaviour
         Debug.Log("Remote catalog loaded successfully");
         Addressables.Release(catalogHandle);
         isInitialized = true;
+
+        // Notify Flutter that Unity is ready to receive product data
+#if !UNITY_EDITOR
+        SendMessageToFlutter("OnUnityReady", "true");
+#endif
     }
 
     // Called by Flutter via postMessage('ARManager', 'OnProductSelected', json)
@@ -59,10 +67,11 @@ public class ARManager : MonoBehaviour
         }
 
         var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
-        StartCoroutine(LoadPrefabByKey(data.addressableKey));
+        Debug.Log($"Product selected: {data.name} | key: {data.addressableKey} | placement: {data.placementType}");
+        StartCoroutine(LoadPrefabByKey(data.addressableKey, data.placementType));
     }
 
-    IEnumerator LoadPrefabByKey(string key)
+    IEnumerator LoadPrefabByKey(string key, string placementType = "Any")
     {
         Debug.Log("Loading prefab with key: " + key);
 
@@ -72,7 +81,8 @@ public class ARManager : MonoBehaviour
         if (handle.Result != null)
         {
             Debug.Log("Prefab loaded: " + key);
-            placeFurniture.SetFurniturePrefab(handle.Result);
+
+            placeFurniture.SetFurniturePrefab(handle.Result, placementType);
         }
         else
         {
@@ -81,11 +91,39 @@ public class ARManager : MonoBehaviour
         }
     }
 
+    void SendMessageToFlutter(string methodName, string message)
+    {
+        // flutter_unity_widget receives this via onUnityMessage callback
+        using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+        {
+            // On iOS this is handled differently — flutter_unity_widget
+            // intercepts NativeAPI.sendMessageToFlutter automatically
+        }
+    }
+
     // Temporary editor test — press L to simulate loading a product
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.L) && isInitialized)
-            StartCoroutine(LoadPrefabByKey("Assets/Prefabs/BrownCabinetPrefab.prefab"));
+        if (!useLocalPrefabForTesting && isInitialized)
+        {
+            // L = load directly by key (quick test)
+            if (Input.GetKeyDown(KeyCode.L))
+                StartCoroutine(LoadPrefabByKey(editorTestKey));
+
+            // K = simulate a full Flutter message (tests the whole pipeline)
+            if (Input.GetKeyDown(KeyCode.K))
+            {
+                string fakeMessage = JsonUtility.ToJson(new ProductMessage
+                {
+                    productId = "test-001",
+                    name = "Test Cabinet",
+                    addressableKey = editorTestKey,
+                    placementType = "HorizontalOnly",
+                    category = "furniture"
+                });
+                OnProductSelected(fakeMessage);
+            }
+        }
     }
 
     [System.Serializable]

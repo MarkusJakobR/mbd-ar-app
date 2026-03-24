@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../models/product.dart';
 
 class ARViewPage extends StatefulWidget {
   final Product product;
-
   const ARViewPage({super.key, required this.product});
 
   @override
@@ -40,34 +40,38 @@ class _ARViewPageState extends State<ARViewPage> {
   void onUnityCreated(UnityWidgetController controller) {
     _unityController = controller;
     print('Unity loaded for ${widget.product.name}');
-    // TODO: send product to unity and display appropriate product
-
     _startAR();
   }
 
   Future<void> _startAR() async {
-    if (_unityController != null) {
-      _unityController!.postMessage(
-        'AR Session', // GameObject name
-        'StartAR', // Method name
-        '', // Message (empty)
-      );
-      print('AR session started');
-    }
+    if (_unityController == null) return;
+
+    _unityController!.postMessage('AR Session', 'StartAR', '');
+    print('AR session started');
+
+    // Small delay to let Unity fully initialize before sending product
+    await Future.delayed(const Duration(milliseconds: 500));
+    _sendProductToUnity();
+  }
+
+  void _sendProductToUnity() {
+    if (_unityController == null) return;
+
+    final message = jsonEncode(widget.product.toUnityMessage());
+    _unityController!.postMessage(
+      'ARManager', // GameObject name in Unity
+      'OnProductSelected', // Method in ARManager.cs
+      message,
+    );
+    print('Product sent to Unity: ${widget.product.name}');
   }
 
   Future<void> _stopAR() async {
-    if (_unityController != null) {
-      _unityController!.postMessage(
-        'AR Session', // GameObject name
-        'StopAR', // Method name
-        '', // Message (empty)
-      );
-      print('AR session stopped');
+    if (_unityController == null) return;
 
-      // Wait a bit for Unity to process the stop command
-      await Future.delayed(const Duration(milliseconds: 300));
-    }
+    _unityController!.postMessage('AR Session', 'StopAR', '');
+    print('AR session stopped');
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   @override

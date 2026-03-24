@@ -173,15 +173,26 @@ public class ARPlaceFurniture : MonoBehaviour
         }
     }
 
-    public void SetFurniturePrefab(GameObject newPrefab)
+    public void SetFurniturePrefab(GameObject newPrefab, string placementType = null)
     {
         furniturePrefab = newPrefab;
         activePlaneType = GetPlaneTypeForPrefab(newPrefab);
 
-        // Notify visibility manager of the new placement type
-        FurnitureData data = newPrefab.GetComponent<FurnitureData>();
-        if (data != null && planeVisibilityManager != null)
-            planeVisibilityManager.SetPlacementType(data.placementType);
+        // Override placement type from remote if provided
+        if (!string.IsNullOrEmpty(placementType))
+        {
+            var data = newPrefab.GetComponent<FurnitureData>();
+            if (data != null && System.Enum.TryParse<FurniturePlacementType>(placementType, out var parsed))
+            {
+                data.placementType = parsed;
+                activePlaneType = TrackableType.PlaneWithinPolygon;
+            }
+        }
+
+        // Notify visibility manager
+        FurnitureData furnitureData = newPrefab.GetComponent<FurnitureData>();
+        if (furnitureData != null && planeVisibilityManager != null)
+            planeVisibilityManager.SetPlacementType(furnitureData.placementType);
 
         if (spawnedObject != null)
         {

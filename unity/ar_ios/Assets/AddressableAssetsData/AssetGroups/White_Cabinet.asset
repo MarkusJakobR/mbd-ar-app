@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Remote Prefabs
+  m_Name: White_Cabinet
   m_EditorClassIdentifier: 
-  m_GroupName: Remote Prefabs
+  m_GroupName: White_Cabinet
   m_Data:
     m_SerializedData: []
-  m_GUID: fd865b0367d9b44049309eb4c08f04bc
+  m_GUID: 7557805d0bb064d629306f57595fd6c6
   m_SerializeEntries:
-  - m_GUID: 8cf050f55e97342b6a559a981828b119
-    m_Address: Assets/Prefabs/BrownCabinetPrefab.prefab
+  - m_GUID: ae668158c48bc4a4ead1eeabc39b60d1
+    m_Address: white_cabinet
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
-  m_Settings: {fileID: 11400000, guid: c4da4b91a375c4b9dbdb5a5021209445, type: 2}
+  m_Settings: {fileID: 11400000, guid: d42755b480ccf447d96503298443270c, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 9e31fc14afe5c4bdb9c5507500a29cc1, type: 2}
-    - {fileID: 11400000, guid: 57c549d8794864a9d90c621954e297a8, type: 2}
+    - {fileID: 11400000, guid: 1d78abbb7d8ed43fca001e9948b9534d, type: 2}
+    - {fileID: 11400000, guid: ee34c962dd79643cc8644fa3819f9f47, type: 2}

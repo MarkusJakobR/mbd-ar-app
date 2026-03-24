@@ -579,6 +579,7 @@ GameObject:
   - component: {fileID: 1454090685}
   - component: {fileID: 1454090684}
   - component: {fileID: 1454090689}
+  - component: {fileID: 1454090690}
   m_Layer: 0
   m_Name: XR Origin (Mobile AR)
   m_TagString: Untagged
@@ -672,10 +673,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   raycastManager: {fileID: 1454090684}
-  furniturePrefab: {fileID: 5052861392659541488, guid: 8cf050f55e97342b6a559a981828b119, type: 3}
+  furniturePrefab: {fileID: 392723307936566158, guid: abc231a20eb914d4ca56be1f1f2c5326, type: 3}
   moveSmoothing: 12
   rotationSpeed: 0.3
   planeVisibilityManager: {fileID: 423447676}
+--- !u!114 &1454090690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1454090683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6fe46378d2364177884c9ea1e0c0d16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  placeFurniture: {fileID: 1454090689}
+  useLocalPrefabForTesting: 0
+  editorTestKey: brown_cabinet
 --- !u!1 &1713084844
 GameObject:
   m_ObjectHideFlags: 0

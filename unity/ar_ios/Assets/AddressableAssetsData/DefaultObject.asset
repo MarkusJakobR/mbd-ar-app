@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a189bb168d8d90478a09ea08c2f3d72, type: 3}
   m_Name: DefaultObject
   m_EditorClassIdentifier: 
-  m_AddressableAssetSettingsGuid: c4da4b91a375c4b9dbdb5a5021209445
+  m_AddressableAssetSettingsGuid: d42755b480ccf447d96503298443270c

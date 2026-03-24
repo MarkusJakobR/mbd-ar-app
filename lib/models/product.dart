@@ -55,6 +55,33 @@ class Product {
     );
   }
 
+  // Derives Unity placement type from your existing category/furnitureType fields
+  String get placementType {
+    switch (furnitureType.toLowerCase()) {
+      case 'door':
+      case 'wall panel':
+        return 'VerticalOnly';
+      case 'cabinet':
+      case 'chair':
+      case 'table':
+      case 'desk':
+      case 'tile':
+        return 'HorizontalOnly';
+      default:
+        return 'Any';
+    }
+  }
+
+  // What gets sent to Unity — modelUrl holds the addressable key
+  Map<String, dynamic> toUnityMessage() => {
+    'productId': id,
+    'name': name,
+    'addressableKey': modelUrl,
+    'placementType': placementType,
+    'category': category,
+    'furnitureType': furnitureType,
+  };
+
   // Helper getters for dimensions
   String get dimensionsString => "$width x $height x $length $unit";
 

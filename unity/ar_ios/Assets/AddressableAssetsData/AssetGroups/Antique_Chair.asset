@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Antique_Chair
+  m_EditorClassIdentifier: 
+  m_GroupName: Antique_Chair
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 3f6252a000b3340418668d0882ef4a56
+  m_SerializeEntries:
+  - m_GUID: bd3e8a011608f4eee93dee822008ef61
+    m_Address: antique_chair
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: d42755b480ccf447d96503298443270c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 64b769a5b220943f1a0a65da88ee406b, type: 2}
+    - {fileID: 11400000, guid: 36b0b3b0ed865476db7b6d59fa47629d, type: 2}
