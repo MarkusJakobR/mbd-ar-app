@@ -100,3 +100,6 @@ InitTestScene*.unity*
 
 # Models
 /[Aa]ssets/Models
+
+# Addressables Builds
+*.ServerData
