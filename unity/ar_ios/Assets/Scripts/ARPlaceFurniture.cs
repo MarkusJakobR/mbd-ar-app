@@ -218,4 +218,15 @@ public class ARPlaceFurniture : MonoBehaviour
             _ => true
         };
     }
+
+    public void ClearScene()
+    {
+        if (spawnedObject != null)
+        {
+            Destroy(spawnedObject);
+            spawnedObject = null;
+        }
+        furniturePrefab = null;
+        isDragging = false;
+    }
 }

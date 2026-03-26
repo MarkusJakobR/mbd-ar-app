@@ -66,6 +66,9 @@ public class ARManager : MonoBehaviour
             return;
         }
 
+        placeFurniture.ClearScene();
+
+
         var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
         Debug.Log($"Product selected: {data.name} | key: {data.addressableKey} | placement: {data.placementType}");
         StartCoroutine(LoadPrefabByKey(data.addressableKey, data.placementType));

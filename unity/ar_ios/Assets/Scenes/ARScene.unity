@@ -690,7 +690,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   placeFurniture: {fileID: 1454090689}
-  useLocalPrefabForTesting: 0
+  useLocalPrefabForTesting: 1
   editorTestKey: brown_cabinet
 --- !u!1 &1713084844
 GameObject:
