@@ -13,6 +13,7 @@ class Product {
   final String unit;
   final String imageUrl;
   final String modelUrl;
+  final String placementType;
   final DateTime createdAt;
 
   Product({
@@ -30,6 +31,7 @@ class Product {
     required this.unit,
     required this.imageUrl,
     required this.modelUrl,
+    required this.placementType,
     required this.createdAt,
   });
 
@@ -49,27 +51,11 @@ class Product {
       unit: map['unit'] ?? 'cm',
       imageUrl: map['image_url'] ?? '',
       modelUrl: map['model_url'] ?? '',
+      placementType: map['placement_type'] ?? 'Any', // ← read from DB
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'])
           : DateTime.now(),
     );
-  }
-
-  // Derives Unity placement type from your existing category/furnitureType fields
-  String get placementType {
-    switch (category.toLowerCase()) {
-      case 'door':
-      case 'wall panel':
-        return 'VerticalOnly';
-      case 'cabinet':
-      case 'chair':
-      case 'table':
-      case 'desk':
-      case 'tile':
-        return 'HorizontalOnly';
-      default:
-        return 'Any';
-    }
   }
 
   // What gets sent to Unity — modelUrl holds the addressable key
