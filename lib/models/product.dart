@@ -57,7 +57,7 @@ class Product {
 
   // Derives Unity placement type from your existing category/furnitureType fields
   String get placementType {
-    switch (furnitureType.toLowerCase()) {
+    switch (category.toLowerCase()) {
       case 'door':
       case 'wall panel':
         return 'VerticalOnly';

@@ -135,34 +135,44 @@ public class ARPlaceFurniture : MonoBehaviour
 
     void TryRaycast(Vector2 screenPosition)
     {
+        // Don't raycast if no prefab is loaded yet
+        if (furniturePrefab == null) return;
+
         if (raycastManager.Raycast(screenPosition, rayHits, activePlaneType))
         {
-
             var hit = rayHits[0];
             FurnitureData data = furniturePrefab.GetComponent<FurnitureData>();
 
-            // Reject if the hit plane doesn't match the furniture's placement type
-            if (data != null && !IsHitOnCorrectPlane(hit, data.placementType)) return;
+            Debug.Log($"TryRaycast — FurnitureData placementType: {data?.placementType}");
+
+            if (data != null && !IsHitOnCorrectPlane(hit, data.placementType))
+            {
+                Debug.Log("TryRaycast — rejected, wrong plane");
+                return;
+            }
 
             Pose hitPose = rayHits[0].pose;
 
             if (spawnedObject == null)
             {
-                // First placement
                 spawnedObject = Instantiate(furniturePrefab, hitPose.position, Quaternion.identity);
+
+                var spawnedData = spawnedObject.GetComponent<FurnitureData>();
+                Debug.Log($"TryRaycast — spawned object placementType: {spawnedData?.placementType}");
+
+                var validator = spawnedObject.GetComponent<FurniturePlacementValidator>();
+                Debug.Log($"TryRaycast — FurniturePlacementValidator: {(validator != null ? "FOUND" : "NULL")}");
 
                 ApplyWallRotationIfNeeded(hitPose);
                 targetPosition = hitPose.position;
             }
             else
             {
-                // Drag to reposition
                 targetPosition = hitPose.position;
                 isDragging = true;
             }
         }
     }
-
     void ApplyWallRotationIfNeeded(Pose hitPose)
     {
         FurnitureData data = furniturePrefab.GetComponent<FurnitureData>();
@@ -182,15 +192,31 @@ public class ARPlaceFurniture : MonoBehaviour
         if (!string.IsNullOrEmpty(placementType))
         {
             var data = newPrefab.GetComponent<FurnitureData>();
+
+            Debug.Log($"SetFurniturePrefab — received placementType: {placementType}");
+            Debug.Log($"SetFurniturePrefab — FurnitureData on prefab: {(data != null ? "FOUND" : "NULL")}");
+
             if (data != null && System.Enum.TryParse<FurniturePlacementType>(placementType, out var parsed))
             {
                 data.placementType = parsed;
-                activePlaneType = TrackableType.PlaneWithinPolygon;
+                Debug.Log($"SetFurniturePrefab — placementType set to: {data.placementType}");
+
+                // activePlaneType = TrackableType.PlaneWithinPolygon;
             }
+            else
+            {
+                Debug.LogWarning($"SetFurniturePrefab — failed to parse: {placementType}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("SetFurniturePrefab — placementType was null or empty");
         }
 
         // Notify visibility manager
         FurnitureData furnitureData = newPrefab.GetComponent<FurnitureData>();
+        Debug.Log($"SetFurniturePrefab — final placementType on prefab: {furnitureData?.placementType}");
+
         if (furnitureData != null && planeVisibilityManager != null)
             planeVisibilityManager.SetPlacementType(furnitureData.placementType);
 
@@ -226,7 +252,6 @@ public class ARPlaceFurniture : MonoBehaviour
             Destroy(spawnedObject);
             spawnedObject = null;
         }
-        furniturePrefab = null;
         isDragging = false;
     }
 }

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using System.Collections;
+using UnityEngine.XR.ARFoundation;
 
 public class ARManager : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class ARManager : MonoBehaviour
     {
         if (!useLocalPrefabForTesting)
             StartCoroutine(InitializeAddressables());
+        else
+            StartCamera();
     }
 
     IEnumerator InitializeAddressables()
@@ -48,6 +51,8 @@ public class ARManager : MonoBehaviour
         // Notify Flutter that Unity is ready to receive product data
 #if !UNITY_EDITOR
         SendMessageToFlutter("OnUnityReady", "true");
+#else
+    Debug.Log("Unity ready — would notify Flutter here");
 #endif
     }
 
@@ -127,6 +132,43 @@ public class ARManager : MonoBehaviour
                 OnProductSelected(fakeMessage);
             }
         }
+    }
+
+    public void ResetScene()
+    {
+        placeFurniture.ClearScene();
+        Debug.Log("Scene reset");
+    }
+
+    public void StopCamera()
+    {
+        var arSession = FindObjectOfType<ARSession>();
+        if (arSession != null)
+        {
+            arSession.enabled = false;
+            Debug.Log("AR Session disabled — camera released");
+        }
+
+        var arCameraManager = FindObjectOfType<ARCameraManager>();
+        if (arCameraManager != null)
+            arCameraManager.enabled = false;
+    }
+
+    public void StartCamera()
+    {
+
+        var arSession = FindObjectOfType<ARSession>();
+        if (arSession != null)
+        {
+            arSession.enabled = true;
+            // Reset the session so plane detection restarts cleanly
+            arSession.Reset();
+            Debug.Log("AR Session enabled and reset — camera started");
+        }
+
+        var arCameraManager = FindObjectOfType<ARCameraManager>();
+        if (arCameraManager != null)
+            arCameraManager.enabled = true;
     }
 
     [System.Serializable]
