@@ -34,6 +34,8 @@ dependencies:
   flutter_dotenv: ^5.1.0
   supabase_flutter: ^2.8.0
 
+  video_player: ^2.8.1
+
   # firebase_core: ^3.6.0
   # cloud_firestore: ^5.4.4
   # firebase_storage: ^12.3.4
@@ -68,6 +70,7 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/videos/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

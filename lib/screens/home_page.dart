@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mbd_ar_app/widgets/splash_screen.dart';
 import '../models/product.dart';
 import '../services/supabase_service.dart';
 import '../widgets/product_grid.dart';
@@ -13,7 +14,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final supabaseService = SupabaseService();
 
@@ -22,9 +24,27 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = false;
   String? _error;
 
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800), // Speed of the scroll up
+    );
+
+    _slideAnimation =
+        Tween<Offset>(
+          begin: Offset.zero,
+          end: const Offset(0, -1), // Move UP by 100% of screen height
+        ).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeInOutExpo, // A "premium" feeling curve
+          ),
+        );
     _fetchProducts();
   }
 
@@ -37,11 +57,28 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      final fetched = await supabaseService.getProductsFuture();
+      // Start both the data fetch and a minimum timer (e.g., 3 seconds)
+      final results = await Future.wait([
+        supabaseService.getProductsFuture(),
+        Future.delayed(const Duration(seconds: 4)), // Keeps splash visible
+      ]);
+
+      final List<Product> fetchedProducts = results[0] as List<Product>;
+
       if (mounted) {
+        // for (var product in fetchedProducts) {
+        //   precacheImage(NetworkImage(product.imageUrl), context);
+        // }
+
         setState(() {
-          products = fetched;
-          _isLoading = false;
+          products = fetchedProducts;
+        });
+
+        _animationController.forward().then((_) {
+          setState(() {
+            _isLoading =
+                false; // Completely remove it from the tree after it slides off
+          });
         });
       }
     } catch (e) {
@@ -61,44 +98,62 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: const Text('Furniture Catalog'),
-        elevation: 0,
-        actions: [
-          // Manual refresh button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchProducts,
+    return Stack(
+      children: [
+        // 1. YOUR ORIGINAL SCAFFOLD (Kept exactly as is)
+        Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
+            title: const Text('Furniture Catalog'),
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _fetchProducts,
+              ),
+              IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  showSearch(
+                    context: context,
+                    delegate: ProductSearchDelegate(allProducts: products),
+                  );
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: ProductSearchDelegate(allProducts: products),
-              );
-            },
+          endDrawer: FilterDrawer(initialFilter: activeFilter ?? ''),
+          backgroundColor: Colors.white,
+          body: Column(
+            children: [
+              FilterBar(
+                selectedFilter: activeFilter,
+                onFilterTap: _handleFilterTap,
+              ),
+              const Divider(height: 20),
+              Expanded(child: _buildBody()),
+            ],
           ),
-        ],
-      ),
-      endDrawer: FilterDrawer(initialFilter: activeFilter ?? ''),
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          FilterBar(
-            selectedFilter: activeFilter,
-            onFilterTap: _handleFilterTap,
+        ),
+
+        // 2. THE SLIDING LAYER (Only visible while loading)
+        if (_isLoading)
+          SlideTransition(
+            position: _slideAnimation, // Uses the controller we set up
+            child: FurnitureSplashScreen(onFinish: () {}),
           ),
-          const Divider(height: 20),
-          Expanded(child: _buildBody()),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildBody() {
+    if (products.isNotEmpty) {
+      return RefreshIndicator(
+        onRefresh: _fetchProducts,
+        child: ProductGrid(products: products),
+      );
+    }
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -125,25 +180,18 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    if (products.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No products found',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _fetchProducts,
-      child: ProductGrid(products: products),
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inbox, size: 80, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'No products found',
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ],
+      ),
     );
   }
 }

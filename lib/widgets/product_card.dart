@@ -55,15 +55,26 @@ class ProductCard extends StatelessWidget {
                               200, // Explicit height helps prevent layout jumps
                           fit: BoxFit.contain,
                           // Optional: Shows a progress indicator while downloading
+                          frameBuilder:
+                              (context, child, frame, wasSynchronouslyLoaded) {
+                                if (wasSynchronouslyLoaded) return child;
+                                return AnimatedOpacity(
+                                  opacity: frame == null ? 0 : 1,
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeOut,
+                                  child: child,
+                                );
+                              },
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                    : null,
+                            return Container(
+                              color: Colors.grey[100],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.image,
+                                  color: Colors.white,
+                                  size: 40,
+                                ),
                               ),
                             );
                           },
