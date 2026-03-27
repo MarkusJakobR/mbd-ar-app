@@ -15,16 +15,47 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   final supabaseService = SupabaseService();
+
   List<Product> products = [];
-  String selectedFilter = '';
   String? activeFilter;
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProducts();
+  }
+
+  Future<void> _fetchProducts() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final fetched = await supabaseService.getProductsFuture();
+      if (mounted) {
+        setState(() {
+          products = fetched;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   void _handleFilterTap(String filterName) {
-    setState(() {
-      activeFilter = filterName;
-    });
+    setState(() => activeFilter = filterName);
     _scaffoldKey.currentState?.openEndDrawer();
   }
 
@@ -36,6 +67,11 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Furniture Catalog'),
         elevation: 0,
         actions: [
+          // Manual refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _fetchProducts,
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -47,7 +83,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      endDrawer: FilterDrawer(initialFilter: selectedFilter),
+      endDrawer: FilterDrawer(initialFilter: activeFilter ?? ''),
       backgroundColor: Colors.white,
       body: Column(
         children: [
@@ -56,43 +92,58 @@ class _HomePageState extends State<HomePage> {
             onFilterTap: _handleFilterTap,
           ),
           const Divider(height: 20),
-
-          Expanded(
-            child: StreamBuilder<List<Product>>(
-              stream: supabaseService.getProductsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                products = snapshot.data ?? [];
-
-                if (products.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.inbox, size: 80, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'No products found',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ProductGrid(products: products);
-              },
-            ),
-          ),
+          Expanded(child: _buildBody()),
         ],
       ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.wifi_off, size: 60, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              'Could not load products',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: _fetchProducts,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (products.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox, size: 80, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'No products found',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchProducts,
+      child: ProductGrid(products: products),
     );
   }
 }
