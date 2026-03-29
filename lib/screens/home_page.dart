@@ -121,14 +121,6 @@ class _HomePageState extends State<HomePage>
             elevation: 0,
             actions: [
               IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-              ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: _fetchProducts,
-              ),
-              IconButton(
                 icon: const Icon(Icons.search),
                 onPressed: () {
                   showSearch(

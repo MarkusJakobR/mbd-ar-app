@@ -26,7 +26,15 @@ class FilterOptions {
     'Desk',
   ];
 
-  static const List<String> brands = ['IKEA', 'West Elm', 'Wayfair', 'Ashley'];
+  static const List<String> brands = [
+    'IKEA',
+    'West Elm',
+    'Doorz',
+    'Ashley',
+    'INC',
+    'CB2',
+    'Crate & Barrel',
+  ];
 
   // Price range to min/max values for filtering
   static (double min, double max) parsePriceRange(String range) {
