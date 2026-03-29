@@ -27,7 +27,7 @@ class ProductFilterService {
       // Furniture type filter
       if (filters.selectedFurnitureTypes.isNotEmpty) {
         final match = filters.selectedFurnitureTypes.any(
-          (t) => product.furnitureType.toLowerCase() == t.toLowerCase(),
+          (t) => product.category.toLowerCase() == t.toLowerCase(),
         );
         if (!match) return false;
       }

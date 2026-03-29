@@ -110,7 +110,7 @@ class _FilterDrawerState extends State<FilterDrawer> {
       // This removes the default border lines from ExpansionTile
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        key: Key('${category}_${isOpen}'),
+        key: Key('${category}_$isOpen'),
         initiallyExpanded: isOpen,
         onExpansionChanged: (expanded) {
           setState(() {

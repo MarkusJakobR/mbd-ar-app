@@ -9,20 +9,21 @@ class FilterOptions {
   static const List<String> materials = [
     'Wood',
     'Metal',
-    'Fabric',
     'Plastic',
+    'Ceramic',
+    'Stone',
+    'Marble',
     'Glass',
-    'Leather',
   ];
 
   static const List<String> furnitureTypes = [
     'Chair',
+    'Door',
     'Table',
-    'Sofa',
-    'Bed',
+    'Tile',
+    'Wall Panel',
     'Cabinet',
     'Desk',
-    'Shelf',
   ];
 
   static const List<String> brands = ['IKEA', 'West Elm', 'Wayfair', 'Ashley'];

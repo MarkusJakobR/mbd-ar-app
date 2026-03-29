@@ -169,13 +169,6 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildBody() {
-    if (products.isNotEmpty) {
-      return RefreshIndicator(
-        onRefresh: _fetchProducts,
-        child: ProductGrid(products: products),
-      );
-    }
-
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -202,18 +195,49 @@ class _HomePageState extends State<HomePage>
       );
     }
 
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inbox, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'No products found',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ],
-      ),
+    final filtered = _filteredProducts;
+
+    if (filtered.isEmpty && _filterState.hasActiveFilters) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.search_off, size: 80, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              'No products match your filters',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () =>
+                  setState(() => _filterState = _filterState.clear()),
+              child: const Text('Clear filters'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (filtered.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox, size: 80, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'No products found',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchProducts,
+      child: ProductGrid(products: filtered), // ← filtered products
     );
   }
 }
