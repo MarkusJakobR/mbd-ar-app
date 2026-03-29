@@ -10,7 +10,9 @@ import '../services/filter_state.dart';
 import '../services/product_filter_service.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final ValueChanged<List<Product>>? onProductsLoaded;
+
+  const HomePage({super.key, this.onProductsLoaded});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -28,37 +30,13 @@ class _HomePageState extends State<HomePage>
   bool _isLoading = false;
   String? _error;
 
-  late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
-
   List<Product> get _filteredProducts =>
       _filterService.apply(products, _filterState);
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800), // Speed of the scroll up
-    );
-
-    _slideAnimation =
-        Tween<Offset>(
-          begin: Offset.zero,
-          end: const Offset(0, -1), // Move UP by 100% of screen height
-        ).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeInOutExpo, // A "premium" feeling curve
-          ),
-        );
     _fetchProducts();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchProducts() async {
@@ -81,14 +59,9 @@ class _HomePageState extends State<HomePage>
       if (mounted) {
         setState(() {
           products = fetchedProducts;
+          _isLoading = false;
         });
-
-        _animationController.forward().then((_) {
-          setState(() {
-            _isLoading =
-                false; // Completely remove it from the tree after it slides off
-          });
-        });
+        widget.onProductsLoaded?.call(fetchedProducts);
       }
     } catch (e) {
       if (mounted) {
@@ -96,6 +69,9 @@ class _HomePageState extends State<HomePage>
           _error = e.toString();
           _isLoading = false;
         });
+
+        // in case user gets stuck
+        widget.onProductsLoaded?.call([]);
       }
     }
   }
@@ -116,21 +92,7 @@ class _HomePageState extends State<HomePage>
         // 1. YOUR ORIGINAL SCAFFOLD (Kept exactly as is)
         Scaffold(
           key: _scaffoldKey,
-          appBar: AppBar(
-            title: const Text('Furniture Catalog'),
-            elevation: 0,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () {
-                  showSearch(
-                    context: context,
-                    delegate: ProductSearchDelegate(allProducts: products),
-                  );
-                },
-              ),
-            ],
-          ),
+          appBar: AppBar(title: const Text('Furniture Catalog'), elevation: 0),
           endDrawer: FilterDrawer(
             initialFilter: activeFilter,
             currentFilterState: _filterState,
@@ -149,13 +111,6 @@ class _HomePageState extends State<HomePage>
             ],
           ),
         ),
-
-        // 2. THE SLIDING LAYER (Only visible while loading)
-        if (_isLoading)
-          SlideTransition(
-            position: _slideAnimation, // Uses the controller we set up
-            child: FurnitureSplashScreen(onFinish: () {}),
-          ),
       ],
     );
   }
