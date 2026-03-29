@@ -6,6 +6,8 @@ import '../widgets/product_grid.dart';
 import '../widgets/product_search_delegate.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/filter_drawer.dart';
+import '../services/filter_state.dart';
+import '../services/product_filter_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,14 +20,19 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final supabaseService = SupabaseService();
+  final _filterService = ProductFilterService();
 
   List<Product> products = [];
+  FilterState _filterState = const FilterState();
   String? activeFilter;
   bool _isLoading = false;
   String? _error;
 
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
+
+  List<Product> get _filteredProducts =>
+      _filterService.apply(products, _filterState);
 
   @override
   void initState() {
@@ -48,6 +55,12 @@ class _HomePageState extends State<HomePage>
     _fetchProducts();
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchProducts() async {
     if (_isLoading) return;
 
@@ -66,10 +79,6 @@ class _HomePageState extends State<HomePage>
       final List<Product> fetchedProducts = results[0] as List<Product>;
 
       if (mounted) {
-        // for (var product in fetchedProducts) {
-        //   precacheImage(NetworkImage(product.imageUrl), context);
-        // }
-
         setState(() {
           products = fetchedProducts;
         });
@@ -96,6 +105,10 @@ class _HomePageState extends State<HomePage>
     _scaffoldKey.currentState?.openEndDrawer();
   }
 
+  void _applyFilters(FilterState newState) {
+    setState(() => _filterState = newState);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -107,6 +120,10 @@ class _HomePageState extends State<HomePage>
             title: const Text('Furniture Catalog'),
             elevation: 0,
             actions: [
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+              ),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: _fetchProducts,
@@ -122,12 +139,17 @@ class _HomePageState extends State<HomePage>
               ),
             ],
           ),
-          endDrawer: FilterDrawer(initialFilter: activeFilter ?? ''),
+          endDrawer: FilterDrawer(
+            initialFilter: activeFilter,
+            currentFilterState: _filterState,
+            onApply: _applyFilters,
+          ),
           backgroundColor: Colors.white,
           body: Column(
             children: [
               FilterBar(
                 selectedFilter: activeFilter,
+                filterState: _filterState,
                 onFilterTap: _handleFilterTap,
               ),
               const Divider(height: 20),
