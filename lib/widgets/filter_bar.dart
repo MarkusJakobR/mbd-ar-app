@@ -58,11 +58,11 @@ class FilterBar extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 // Active filter = filled background, selected = just border
                 backgroundColor: hasActive
-                    ? const Color(0xFF2C2A6D)
+                    ? const Color(0xFFF9BE2C)
                     : Colors.transparent,
                 side: BorderSide(
                   color: hasActive || isSelected
-                      ? const Color(0xFF2C2A6D)
+                      ? const Color(0xFFF9BE2C)
                       : Colors.grey.shade300,
                   width: hasActive || isSelected ? 2.0 : 1.0,
                 ),
@@ -81,7 +81,7 @@ class FilterBar extends StatelessWidget {
                           ? FontWeight.bold
                           : FontWeight.normal,
                       color: hasActive
-                          ? Colors.white
+                          ? Color(0xFF2C2A6D)
                           : isSelected
                           ? const Color(0xFF2C2A6D)
                           : Colors.black,
