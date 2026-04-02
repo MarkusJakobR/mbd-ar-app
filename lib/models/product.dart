@@ -7,9 +7,9 @@ class Product {
   final String category;
   final String furnitureType;
   final String material;
-  final int height;
-  final int width;
-  final int length;
+  final double height;
+  final double width;
+  final double length;
   final String unit;
   final String imageUrl;
   final String modelUrl;
@@ -45,9 +45,9 @@ class Product {
       category: map['category'] ?? '',
       furnitureType: map['furniture_type'] ?? '',
       material: map['material'] ?? '',
-      height: map['height'] ?? 0,
-      width: map['width'] ?? 0,
-      length: map['length'] ?? 0,
+      height: (map['height'] ?? 0).toDouble(),
+      width: (map['width'] ?? 0).toDouble(),
+      length: (map['length'] ?? 0).toDouble(),
       unit: map['unit'] ?? 'cm',
       imageUrl: map['image_url'] ?? '',
       modelUrl: map['model_url'] ?? '',
@@ -69,7 +69,11 @@ class Product {
   };
 
   // Helper getters for dimensions
-  String get dimensionsString => "$width x $height x $length $unit";
+  String get dimensionsString {
+    String format(double v) =>
+        v == v.truncateToDouble() ? v.toInt().toString() : v.toString();
+    return "${format(width)} x ${format(height)} x ${format(length)} $unit";
+  }
 
   bool matchesSearch(String query) {
     final lowercaseQuery = query.toLowerCase();

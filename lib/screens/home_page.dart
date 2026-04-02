@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:mbd_ar_app/widgets/splash_screen.dart';
 import '../models/product.dart';
 import '../services/supabase_service.dart';
 import '../widgets/product_grid.dart';
-import '../widgets/product_search_delegate.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/filter_drawer.dart';
 import '../services/filter_state.dart';
 import '../services/product_filter_service.dart';
+import '../services/favorites_service.dart';
 
 class HomePage extends StatefulWidget {
   final ValueChanged<List<Product>>? onProductsLoaded;
+  final FavoritesService favoritesService;
 
-  const HomePage({super.key, this.onProductsLoaded});
+  const HomePage({
+    super.key,
+    this.onProductsLoaded,
+    required this.favoritesService,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -184,7 +188,10 @@ class _HomePageState extends State<HomePage>
 
     return RefreshIndicator(
       onRefresh: _fetchProducts,
-      child: ProductGrid(products: filtered), // ← filtered products
+      child: ProductGrid(
+        products: filtered,
+        favoritesService: widget.favoritesService,
+      ), // ← filtered products
     );
   }
 }

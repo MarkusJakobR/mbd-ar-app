@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../widgets/splash_screen.dart';
+import '../services/favorites_service.dart';
 import 'home_page.dart';
 import 'search_page.dart';
 import 'favorites_page.dart';
@@ -16,6 +17,7 @@ class _MainNavState extends State<MainNav> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   List<Product> _sharedProducts = [];
   bool _showSplash = true;
+  final _favoritesService = FavoritesService();
 
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
@@ -23,6 +25,9 @@ class _MainNavState extends State<MainNav> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
+    _favoritesService.init();
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -65,9 +70,18 @@ class _MainNavState extends State<MainNav> with SingleTickerProviderStateMixin {
           body: IndexedStack(
             index: _currentIndex,
             children: [
-              HomePage(onProductsLoaded: _onProductsLoaded),
-              SearchPage(products: _sharedProducts),
-              const FavoritesPage(),
+              HomePage(
+                onProductsLoaded: _onProductsLoaded,
+                favoritesService: _favoritesService,
+              ),
+              SearchPage(
+                products: _sharedProducts,
+                favoritesService: _favoritesService,
+              ),
+              FavoritesPage(
+                allProducts: _sharedProducts,
+                favoritesService: _favoritesService,
+              ),
             ],
           ),
           bottomNavigationBar: NavigationBar(

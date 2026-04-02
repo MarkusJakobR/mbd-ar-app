@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../screens/product_detail_page.dart';
+import '../services/favorites_service.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
+  final FavoritesService favoritesService;
 
-  const ProductCard({super.key, required this.product});
+  const ProductCard({
+    super.key,
+    required this.product,
+    required this.favoritesService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -91,20 +97,35 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.favorite_border,
-                        ), // Unfilled heart
-                        // icon: const Icon(Icons.favorite), // Filled heart (for favorited state)
-                        color: Colors.grey[700],
-                        iconSize: 24,
-                        onPressed: () {
-                          // TODO: Add favorite functionality
-                          print('Favorite tapped for ${product.name}');
+                      child: ListenableBuilder(
+                        listenable: favoritesService,
+                        builder: (context, _) {
+                          final isFav = favoritesService.isFavorite(product.id);
+                          return GestureDetector(
+                            onTap: () =>
+                                favoritesService.toggleFavorite(product),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                isFav ? Icons.favorite : Icons.favorite_border,
+                                color: isFav ? Colors.red : Colors.grey,
+                                size: 18,
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),

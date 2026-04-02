@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../services/supabase_service.dart';
 import '../widgets/product_card.dart';
+import '../services/favorites_service.dart';
 
 class SearchPage extends StatefulWidget {
   final List<Product> products;
+  final FavoritesService favoritesService;
 
-  const SearchPage({super.key, required this.products});
+  const SearchPage({
+    super.key,
+    required this.products,
+    required this.favoritesService,
+  });
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -145,7 +150,10 @@ class _SearchPageState extends State<SearchPage> {
         mainAxisSpacing: 16,
       ),
       itemCount: _results.length,
-      itemBuilder: (context, index) => ProductCard(product: _results[index]),
+      itemBuilder: (context, index) => ProductCard(
+        product: _results[index],
+        favoritesService: widget.favoritesService,
+      ),
     );
   }
 }
