@@ -111,9 +111,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         // Dimensions Section
                         _buildSection(
                           'Dimensions',
-                          '${widget.product.height.toStringAsFixed(0)}H × '
-                              '${widget.product.width.toStringAsFixed(0)}W × '
-                              '${widget.product.length.toStringAsFixed(0)}L ${widget.product.unit}',
+                          widget.product.dimensionsString,
                         ),
                         const SizedBox(height: 24),
 
@@ -182,24 +180,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        // Image indicators (dots)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            3, // TODO: Replace with actual image count
-            (index) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: index == _currentImageIndex
-                    ? const Color(0xFF2C2A6D)
-                    : Colors.grey[300],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

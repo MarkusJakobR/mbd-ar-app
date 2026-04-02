@@ -142,7 +142,7 @@ class ProductCard extends StatelessWidget {
 
                     // Dimensions
                     Text(
-                      '${product.height.toStringAsFixed(0)} x ${product.width.toStringAsFixed(0)} x ${product.length.toStringAsFixed(0)} ${product.unit}',
+                      product.dimensionsString,
                       style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                     ),
 
