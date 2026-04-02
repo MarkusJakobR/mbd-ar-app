@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/product.dart';
 import 'ar_view_page.dart';
+import '../services/favorites_service.dart';
+import '../widgets/favorite_button.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
+  final FavoritesService favoritesService;
 
-  const ProductDetailPage({super.key, required this.product});
+  const ProductDetailPage({
+    super.key,
+    required this.product,
+    required this.favoritesService,
+  });
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -27,11 +33,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border, color: Colors.black),
-            onPressed: () {
-              // TODO: Add to favorites
-            },
+          FavoriteButton(
+            product: widget.product,
+            favoritesService: widget.favoritesService,
+            size: 24,
           ),
           IconButton(
             icon: const Icon(Icons.share, color: Colors.black),

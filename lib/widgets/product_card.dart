@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../screens/product_detail_page.dart';
 import '../services/favorites_service.dart';
+import '../widgets/favorite_button.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -27,7 +28,10 @@ class ProductCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProductDetailPage(product: product),
+              builder: (context) => ProductDetailPage(
+                product: product,
+                favoritesService: favoritesService,
+              ),
             ),
           );
         },
@@ -98,35 +102,12 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      top: 8,
-                      right: 8,
-                      child: ListenableBuilder(
-                        listenable: favoritesService,
-                        builder: (context, _) {
-                          final isFav = favoritesService.isFavorite(product.id);
-                          return GestureDetector(
-                            onTap: () =>
-                                favoritesService.toggleFavorite(product),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                isFav ? Icons.favorite : Icons.favorite_border,
-                                color: isFav ? Colors.red : Colors.grey,
-                                size: 18,
-                              ),
-                            ),
-                          );
-                        },
+                      top: 4,
+                      right: 4,
+                      child: FavoriteButton(
+                        product: product,
+                        favoritesService: favoritesService,
+                        size: 24,
                       ),
                     ),
                   ],
