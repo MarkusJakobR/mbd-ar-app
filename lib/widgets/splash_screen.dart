@@ -17,12 +17,16 @@ class _FurnitureSplashScreenState extends State<FurnitureSplashScreen> {
   void initState() {
     super.initState();
     // Assuming you saved your Manim export in assets/videos/splash.mp4
-    _controller = VideoPlayerController.asset('assets/videos/splash.mp4')
-      ..initialize().then((_) {
-        setState(() {});
-        _controller.play();
-        _controller.setLooping(true);
-      });
+    _controller =
+        VideoPlayerController.asset(
+            'assets/videos/splash.mp4',
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          )
+          ..initialize().then((_) {
+            setState(() {});
+            _controller.play();
+            _controller.setLooping(true);
+          });
 
     // Check if initialization is complete every few seconds,
     // or you can set a timer to ensure the user sees the animation.
