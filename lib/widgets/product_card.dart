@@ -3,6 +3,7 @@ import '../models/product.dart';
 import '../screens/product_detail_page.dart';
 import '../services/favorites_service.dart';
 import '../widgets/favorite_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -57,47 +58,27 @@ class ProductCard extends StatelessWidget {
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(12),
                         ),
-                        child: Image.network(
-                          product
-                              .imageUrl, // This uses the URL from your database
+                        child: CachedNetworkImage(
+                          imageUrl: product.imageUrl, // URL from your database
                           width: double.infinity,
-                          height:
-                              200, // Explicit height helps prevent layout jumps
+                          height: 200, // Explicit height prevents layout jumps
                           fit: BoxFit.contain,
-                          // Optional: Shows a progress indicator while downloading
-                          frameBuilder:
-                              (context, child, frame, wasSynchronouslyLoaded) {
-                                if (wasSynchronouslyLoaded) return child;
-                                return AnimatedOpacity(
-                                  opacity: frame == null ? 0 : 1,
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeOut,
-                                  child: child,
-                                );
-                              },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              color: Colors.grey[100],
-                              child: const Center(
-                                child: Icon(
-                                  Icons.image,
-                                  color: Colors.white,
-                                  size: 40,
-                                ),
-                              ),
-                            );
-                          },
-                          // Optional: Shows an icon if the URL is broken or 404
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Center(
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey.shade100,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey.shade100,
+                            child: const Center(
                               child: Icon(
                                 Icons.broken_image,
                                 size: 50,
                                 color: Colors.grey,
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         ),
                       ),
                     ),

@@ -3,6 +3,7 @@ import '../models/product.dart';
 import 'ar_view_page.dart';
 import '../services/favorites_service.dart';
 import '../widgets/favorite_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
@@ -19,8 +20,6 @@ class ProductDetailPage extends StatefulWidget {
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
-  int _currentImageIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,8 +137,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildImageGallery() {
-    // TODO: Later support multiple images
-    // For now, showing single image with placeholder for gallery dots
     return Column(
       children: [
         Container(
@@ -148,34 +145,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           color: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Image.network(
-              widget.product.imageUrl,
+            child: CachedNetworkImage(
+              imageUrl: widget.product.imageUrl,
               fit: BoxFit.contain,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null,
-                    color: const Color(0xFF2C2A6D),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text(
-                      "Image unavailable",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                );
-              },
+              placeholder: (context, url) => Container(
+                color: Colors.grey.shade100,
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey.shade100,
+                child: const Center(
+                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                ),
+              ),
             ),
           ),
         ),
