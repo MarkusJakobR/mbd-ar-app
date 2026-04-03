@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
-[RequireComponent(typeof(ARRaycastManager))]
 public class ARPlaceFurniture : MonoBehaviour
 {
     [SerializeField] private ARRaycastManager raycastManager;
@@ -18,6 +17,8 @@ public class ARPlaceFurniture : MonoBehaviour
     private float previousPinchAngle;
     private TrackableType activePlaneType;
     private ARPlaneManager planeManager;
+    private bool _isDraggingObject = false;
+    private ARObjectSelector _selector;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -25,6 +26,7 @@ public class ARPlaceFurniture : MonoBehaviour
     {
         // Cache ARPlaneManager once instead of finding it every raycast
         planeManager = FindObjectOfType<ARPlaneManager>();
+        _selector = FindObjectOfType<ARObjectSelector>();
 
         if (furniturePrefab != null)
         {
@@ -46,19 +48,18 @@ public class ARPlaceFurniture : MonoBehaviour
         HandleMouseFallback();
 
         // Smoothly move the object toward the target position (avoids glitch snapping)
-        if (spawnedObject != null)
+        if (_selector != null && _selector.HasSelection && isDragging)
         {
-            if (isDragging)
-            {
-                spawnedObject.transform.position = Vector3.Lerp(
-                    spawnedObject.transform.position,
-                    targetPosition,
-                    Time.deltaTime * moveSmoothing
-                );
-            }
+            _selector.SelectedObject.transform.position = Vector3.Lerp(
+                _selector.SelectedObject.transform.position,
+                targetPosition,
+                Time.deltaTime * moveSmoothing
+            );
 
-            Vector3 euler = spawnedObject.transform.eulerAngles;
-            spawnedObject.transform.eulerAngles = new Vector3(0f, euler.y, 0f);
+            // Lock upright
+            Vector3 euler = _selector.SelectedObject.transform.eulerAngles;
+            _selector.SelectedObject.transform.eulerAngles =
+                new Vector3(0f, euler.y, 0f);
         }
     }
 
@@ -73,10 +74,33 @@ public class ARPlaceFurniture : MonoBehaviour
         {
             Touch touch = Input.GetTouch(0);
 
-            // Single finger: place or drag
-            if (touch.phase == TouchPhase.Began || touch.phase == TouchPhase.Moved)
+            // tap only
+            if (touch.phase == TouchPhase.Began)
             {
-                TryRaycast(touch.position);
+                // Check if touch hit an AR object
+                var hitObject = GetTouchedObject(touch.position);
+
+                if (hitObject != null)
+                {
+                    // Select the tapped object
+                    _selector.Select(hitObject);
+                    _isDraggingObject = true;
+                }
+                else
+                {
+                    // Tapped empty space
+                    if (_selector.HasSelection)
+                        _selector.Deselect();
+                    else
+                        TryPlaceObject(touch.position); // place new object
+                }
+            }
+
+            if (touch.phase == TouchPhase.Moved && _isDraggingObject)
+            {
+                // Drag selected object along the plane
+                if (_selector.HasSelection)
+                    TryMoveSelected(touch.position);
             }
 
             if (touch.phase == TouchPhase.Ended)
@@ -84,7 +108,7 @@ public class ARPlaceFurniture : MonoBehaviour
                 isDragging = false;
             }
         }
-        else if (Input.touchCount == 2 && spawnedObject != null)
+        else if (Input.touchCount == 2 && _selector.HasSelection)
         {
             // Two fingers: rotate
             Touch t0 = Input.GetTouch(0);
@@ -103,7 +127,8 @@ public class ARPlaceFurniture : MonoBehaviour
             else if (t0.phase == TouchPhase.Moved || t1.phase == TouchPhase.Moved)
             {
                 float delta = currentAngle - previousPinchAngle;
-                spawnedObject.transform.Rotate(Vector3.up, -delta * rotationSpeed, Space.World);
+                _selector.SelectedObject.transform.Rotate(
+                Vector3.up, -delta * rotationSpeed, Space.World);
                 previousPinchAngle = currentAngle;
             }
         }
@@ -163,7 +188,7 @@ public class ARPlaceFurniture : MonoBehaviour
                 var validator = spawnedObject.GetComponent<FurniturePlacementValidator>();
                 Debug.Log($"TryRaycast — FurniturePlacementValidator: {(validator != null ? "FOUND" : "NULL")}");
 
-                ApplyWallRotationIfNeeded(hitPose);
+                ApplyWallRotationIfNeeded(hitPose, spawnedObject);
                 targetPosition = hitPose.position;
             }
             else
@@ -173,7 +198,7 @@ public class ARPlaceFurniture : MonoBehaviour
             }
         }
     }
-    void ApplyWallRotationIfNeeded(Pose hitPose)
+    void ApplyWallRotationIfNeeded(Pose hitPose, GameObject spawnedObject)
     {
         FurnitureData data = furniturePrefab.GetComponent<FurnitureData>();
         if (data != null && data.placementType == FurniturePlacementType.VerticalOnly)
@@ -253,5 +278,64 @@ public class ARPlaceFurniture : MonoBehaviour
             spawnedObject = null;
         }
         isDragging = false;
+    }
+
+    GameObject GetTouchedObject(Vector2 screenPosition)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(screenPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            // Walk up the hierarchy to find a root object with FurnitureData
+            var target = hit.transform;
+            while (target != null)
+            {
+                if (target.GetComponent<FurnitureData>() != null)
+                    return target.gameObject;
+                target = target.parent;
+            }
+        }
+        return null;
+    }
+
+    void TryPlaceObject(Vector2 screenPosition)
+    {
+        if (furniturePrefab == null) return;
+
+        if (raycastManager.Raycast(screenPosition, rayHits, activePlaneType))
+        {
+            var hit = rayHits[0];
+            FurnitureData data = furniturePrefab.GetComponent<FurnitureData>();
+            if (data != null && !IsHitOnCorrectPlane(hit, data.placementType)) return;
+
+            Pose hitPose = hit.pose;
+            var newObject = Instantiate(furniturePrefab, hitPose.position, Quaternion.identity);
+            ApplyWallRotationIfNeeded(hitPose, newObject);
+
+            // Add selection indicator to spawned object
+            newObject.AddComponent<SelectionIndicator>();
+
+            // Auto select newly placed object
+            _selector.Select(newObject);
+            targetPosition = hitPose.position;
+        }
+    }
+
+    void TryMoveSelected(Vector2 screenPosition)
+    {
+
+        var uiManager = FindObjectOfType<ARUIManager>();
+        if (uiManager != null && uiManager.IsLocked) return;
+
+        if (!_selector.HasSelection) return;
+
+        if (raycastManager.Raycast(screenPosition, rayHits, activePlaneType))
+        {
+            var hit = rayHits[0];
+            FurnitureData data = _selector.SelectedObject.GetComponent<FurnitureData>();
+            if (data != null && !IsHitOnCorrectPlane(hit, data.placementType)) return;
+
+            targetPosition = rayHits[0].pose.position;
+            isDragging = true;
+        }
     }
 }
