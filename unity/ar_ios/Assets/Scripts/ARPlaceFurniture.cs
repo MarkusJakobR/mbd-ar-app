@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -137,24 +138,49 @@ public class ARPlaceFurniture : MonoBehaviour
     void HandleMouseFallback()
     {
         // Editor / desktop testing only
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButtonDown(0))
         {
-            TryRaycast(Input.mousePosition);
+            // Check if clicking on UI first
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return;
+
+            var hitObject = GetTouchedObject(Input.mousePosition);
+
+            if (hitObject != null)
+            {
+                _selector.Select(hitObject);
+                _isDraggingObject = true;
+            }
+            else
+            {
+                if (_selector.HasSelection)
+                    _selector.Deselect();
+                else
+                    TryPlaceObject(Input.mousePosition);
+            }
         }
+
+        if (Input.GetMouseButton(0) && _isDraggingObject)
+        {
+            if (_selector.HasSelection)
+                TryMoveSelected(Input.mousePosition);
+        }
+
         if (Input.GetMouseButtonUp(0))
         {
+            _isDraggingObject = false;
             isDragging = false;
         }
-        if (spawnedObject != null)
+
+        // Keyboard rotation — acts on selected object
+        if (_selector != null && _selector.HasSelection)
         {
             if (Input.GetKey(KeyCode.R))
-            {
-                spawnedObject.transform.Rotate(Vector3.up, rotationSpeed * 100f * Time.deltaTime, Space.World);
-            }
+                _selector.SelectedObject.transform.Rotate(
+                    Vector3.up, rotationSpeed * 100f * Time.deltaTime, Space.World);
             if (Input.GetKey(KeyCode.T))
-            {
-                spawnedObject.transform.Rotate(Vector3.up, -rotationSpeed * 100f * Time.deltaTime, Space.World);
-            }
+                _selector.SelectedObject.transform.Rotate(
+                    Vector3.up, -rotationSpeed * 100f * Time.deltaTime, Space.World);
         }
     }
 
@@ -283,9 +309,12 @@ public class ARPlaceFurniture : MonoBehaviour
     GameObject GetTouchedObject(Vector2 screenPosition)
     {
         Ray ray = Camera.main.ScreenPointToRay(screenPosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+
+        // Use IgnoreRaycastLayer check and include triggers
+        RaycastHit[] hits = Physics.RaycastAll(ray, 100f);
+
+        foreach (var hit in hits)
         {
-            // Walk up the hierarchy to find a root object with FurnitureData
             var target = hit.transform;
             while (target != null)
             {
@@ -295,6 +324,7 @@ public class ARPlaceFurniture : MonoBehaviour
             }
         }
         return null;
+
     }
 
     void TryPlaceObject(Vector2 screenPosition)
