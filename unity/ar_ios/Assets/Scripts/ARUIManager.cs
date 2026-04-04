@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+
 
 public class ARUIManager : MonoBehaviour
 {
@@ -21,6 +23,12 @@ public class ARUIManager : MonoBehaviour
     [SerializeField] private ARPlaceFurniture placeFurniture;
     [SerializeField] private ARObjectSelector selector;
 
+    [Header("Variables")]
+    [SerializeField] private float rotationSpeed = 100f;
+
+
+    private bool _rotatingClockwise = false;
+    private bool _rotatingCounter = false;
     private bool _menuOpen = false;
     private bool _isLocked = false;
 
@@ -29,8 +37,13 @@ public class ARUIManager : MonoBehaviour
     void Start()
     {
         // Right side buttons
-        rotateClockwiseBtn.onClick.AddListener(RotateClockwise);
-        rotateCounterBtn.onClick.AddListener(RotateCounter);
+        AddPointerHold(rotateClockwiseBtn,
+            () => _rotatingClockwise = true,
+            () => _rotatingClockwise = false);
+
+        AddPointerHold(rotateCounterBtn,
+            () => _rotatingCounter = true,
+            () => _rotatingCounter = false);
         deleteBtn.onClick.AddListener(DeleteSelected);
         lockBtn.onClick.AddListener(ToggleLock);
         screenshotBtn.onClick.AddListener(TakeScreenshot);
@@ -49,6 +62,38 @@ public class ARUIManager : MonoBehaviour
         UpdateButtonVisibility(false);
     }
 
+    void AddPointerHold(Button btn, System.Action onDown, System.Action onUp)
+    {
+        var trigger = btn.gameObject.AddComponent<EventTrigger>();
+
+        var down = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+        down.callback.AddListener(_ => onDown());
+        trigger.triggers.Add(down);
+
+        var up = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+        up.callback.AddListener(_ => onUp());
+        trigger.triggers.Add(up);
+
+        // Also handle pointer exit so releasing outside button still stops rotation
+        var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+        exit.callback.AddListener(_ => onUp());
+        trigger.triggers.Add(exit);
+    }
+
+    void Update()
+    {
+        if (selector.HasSelection && !_isLocked)
+        {
+            if (_rotatingClockwise)
+                selector.SelectedObject.transform.Rotate(
+                    Vector3.up, rotationSpeed * Time.deltaTime, Space.World);
+
+            if (_rotatingCounter)
+                selector.SelectedObject.transform.Rotate(
+                    Vector3.up, -rotationSpeed * Time.deltaTime, Space.World);
+        }
+    }
+
     void UpdateButtonVisibility(bool hasSelection)
     {
         // These only make sense when something is selected
@@ -62,14 +107,15 @@ public class ARUIManager : MonoBehaviour
     {
         if (!selector.HasSelection || _isLocked) return;
         selector.SelectedObject.transform.Rotate(
-            Vector3.up, 45f, Space.World);
+            Vector3.up, rotationSpeed * 100f * Time.deltaTime, Space.World);
     }
 
     void RotateCounter()
     {
         if (!selector.HasSelection || _isLocked) return;
         selector.SelectedObject.transform.Rotate(
-            Vector3.up, -45f, Space.World);
+            Vector3.up, -rotationSpeed * 100f * Time.deltaTime, Space.World);
+
     }
 
     void DeleteSelected()
