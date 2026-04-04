@@ -134,19 +134,6 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-
-            Positioned(
-              bottom: 32,
-              right: 16,
-              child: FloatingActionButton.small(
-                heroTag: 'reset',
-                backgroundColor: Colors.red,
-                onPressed: () {
-                  _unityController?.postMessage('ARManager', 'ResetScene', '');
-                },
-                child: const Icon(Icons.refresh),
-              ),
-            ),
           ],
         ),
       ),

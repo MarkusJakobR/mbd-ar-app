@@ -228,8 +228,8 @@ public class ARUIManager : MonoBehaviour
 
         Debug.Log($"Screenshot saved: {path}");
 
-#if !UNITY_EDITOR
-        NativeAPI.SendMessageToFlutter($"ScreenshotSaved:{path}");
-#endif
+        // #if !UNITY_EDITOR
+        //         NativeAPI.SendMessageToFlutter($"ScreenshotSaved:{path}");
+        // #endif
     }
 }
