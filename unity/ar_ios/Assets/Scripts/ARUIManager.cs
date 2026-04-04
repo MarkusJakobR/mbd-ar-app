@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-
 public class ARUIManager : MonoBehaviour
 {
     [Header("Right Side Buttons")]
@@ -27,40 +26,78 @@ public class ARUIManager : MonoBehaviour
     [SerializeField] private float rotationSpeed = 100f;
     [SerializeField] private GameObject tapToPlaceHint;
 
-
     private bool _rotatingClockwise = false;
     private bool _rotatingCounter = false;
     private bool _menuOpen = false;
-    private bool _isLocked = false;
 
-    public bool IsLocked => _isLocked;
+    // Single source of truth — reads from the selected object's FurnitureLock
+    public bool IsLocked
+    {
+        get
+        {
+            if (!selector.HasSelection) return false;
+            var lockComp = selector.SelectedObject.GetComponent<FurnitureLock>();
+            return lockComp != null && lockComp.IsLocked;
+        }
+    }
 
     void Start()
     {
-        // Right side buttons
-        AddPointerHold(rotateClockwiseBtn,
-            () => _rotatingClockwise = true,
-            () => _rotatingClockwise = false);
+        if (rotateClockwiseBtn != null)
+            AddPointerHold(rotateClockwiseBtn,
+                () => _rotatingClockwise = true,
+                () => _rotatingClockwise = false);
 
-        AddPointerHold(rotateCounterBtn,
-            () => _rotatingCounter = true,
-            () => _rotatingCounter = false);
-        deleteBtn.onClick.AddListener(DeleteSelected);
-        lockBtn.onClick.AddListener(ToggleLock);
-        screenshotBtn.onClick.AddListener(TakeScreenshot);
+        if (rotateCounterBtn != null)
+            AddPointerHold(rotateCounterBtn,
+                () => _rotatingCounter = true,
+                () => _rotatingCounter = false);
 
-        // Menu buttons
-        menuToggleBtn.onClick.AddListener(ToggleMenu);
-        resetBtn.onClick.AddListener(ResetScene);
-        duplicateBtn.onClick.AddListener(DuplicateSelected);
-        helpBtn.onClick.AddListener(OpenHelp);
+        if (deleteBtn != null)
+            deleteBtn.onClick.AddListener(DeleteSelected);
 
-        menuPanel.SetActive(false);
+        if (lockBtn != null)
+            lockBtn.onClick.AddListener(ToggleLock);
 
-        // Show/hide buttons based on selection
-        selector.OnObjectSelected += _ => UpdateButtonVisibility(true);
-        selector.OnObjectDeselected += () => UpdateButtonVisibility(false);
+        if (screenshotBtn != null)
+            screenshotBtn.onClick.AddListener(TakeScreenshot);
+
+        if (menuToggleBtn != null)
+            menuToggleBtn.onClick.AddListener(ToggleMenu);
+
+        if (menuPanel != null)
+            menuPanel.SetActive(false);
+
+        if (resetBtn != null)
+            resetBtn.onClick.AddListener(ResetScene);
+
+        if (duplicateBtn != null)
+            duplicateBtn.onClick.AddListener(DuplicateSelected);
+
+        if (helpBtn != null)
+            helpBtn.onClick.AddListener(OpenHelp);
+
+        if (selector != null)
+        {
+            selector.OnObjectSelected += _ => UpdateButtonVisibility(true);
+            selector.OnObjectDeselected += () => UpdateButtonVisibility(false);
+        }
+
         UpdateButtonVisibility(false);
+    }
+
+    void Update()
+    {
+        if (!selector.HasSelection) return;
+        if (IsLocked) return; // uses the property — reads from FurnitureLock
+
+        if (_rotatingClockwise)
+            selector.SelectedObject.transform.Rotate(
+                Vector3.up, rotationSpeed * Time.deltaTime, Space.World);
+
+        if (_rotatingCounter)
+            selector.SelectedObject.transform.Rotate(
+                Vector3.up, -rotationSpeed * Time.deltaTime, Space.World);
     }
 
     void AddPointerHold(Button btn, System.Action onDown, System.Action onUp)
@@ -75,33 +112,80 @@ public class ARUIManager : MonoBehaviour
         up.callback.AddListener(_ => onUp());
         trigger.triggers.Add(up);
 
-        // Also handle pointer exit so releasing outside button still stops rotation
         var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
         exit.callback.AddListener(_ => onUp());
         trigger.triggers.Add(exit);
     }
 
-    void Update()
-    {
-        if (selector.HasSelection && !_isLocked)
-        {
-            if (_rotatingClockwise)
-                selector.SelectedObject.transform.Rotate(
-                    Vector3.up, rotationSpeed * Time.deltaTime, Space.World);
-
-            if (_rotatingCounter)
-                selector.SelectedObject.transform.Rotate(
-                    Vector3.up, -rotationSpeed * Time.deltaTime, Space.World);
-        }
-    }
-
     void UpdateButtonVisibility(bool hasSelection)
     {
-        // These only make sense when something is selected
         rotateClockwiseBtn?.gameObject.SetActive(hasSelection);
         rotateCounterBtn?.gameObject.SetActive(hasSelection);
         deleteBtn?.gameObject.SetActive(hasSelection);
         lockBtn?.gameObject.SetActive(hasSelection);
+
+        if (hasSelection)
+        {
+            var lockComp = selector.SelectedObject?.GetComponent<FurnitureLock>();
+            UpdateLockButtonVisual(lockComp != null && lockComp.IsLocked);
+        }
+    }
+
+    void ToggleLock()
+    {
+        if (!selector.HasSelection) return;
+
+        var lockComp = selector.SelectedObject.GetComponent<FurnitureLock>();
+        if (lockComp == null) return;
+
+        lockComp.Toggle();
+        UpdateLockButtonVisual(lockComp.IsLocked);
+    }
+
+    void UpdateLockButtonVisual(bool isLocked)
+    {
+        if (lockBtn == null) return;
+
+        var colors = lockBtn.colors;
+        colors.normalColor = isLocked
+            ? new Color(0.17f, 0.16f, 0.43f)
+            : Color.white;
+        lockBtn.colors = colors;
+
+    }
+
+    void DeleteSelected()
+    {
+        // No lock state to reset — lock lives on the object, destroyed with it
+        selector.DeleteSelected();
+    }
+
+    void ToggleMenu()
+    {
+        _menuOpen = !_menuOpen;
+        menuPanel?.SetActive(_menuOpen);
+    }
+
+    void ResetScene()
+    {
+        placeFurniture.ResetScene();
+        selector.Deselect();
+        _menuOpen = false;
+        menuPanel?.SetActive(false);
+    }
+
+    void DuplicateSelected()
+    {
+        placeFurniture.DuplicateSelected();
+        _menuOpen = false;
+        menuPanel?.SetActive(false);
+    }
+
+    void OpenHelp()
+    {
+        Debug.Log("Help — tutorial coming soon");
+        _menuOpen = false;
+        menuPanel?.SetActive(false);
     }
 
     public void ShowTapToPlaceHint(bool show)
@@ -112,73 +196,6 @@ public class ARUIManager : MonoBehaviour
             Debug.LogWarning("tapToPlaceHint is not assigned in ARUIManager");
     }
 
-    void RotateClockwise()
-    {
-        if (!selector.HasSelection || _isLocked) return;
-        selector.SelectedObject.transform.Rotate(
-            Vector3.up, rotationSpeed * 100f * Time.deltaTime, Space.World);
-    }
-
-    void RotateCounter()
-    {
-        if (!selector.HasSelection || _isLocked) return;
-        selector.SelectedObject.transform.Rotate(
-            Vector3.up, -rotationSpeed * 100f * Time.deltaTime, Space.World);
-
-    }
-
-    void DeleteSelected()
-    {
-        _isLocked = false;
-        selector.DeleteSelected();
-    }
-
-    void ToggleLock()
-    {
-        if (!selector.HasSelection) return;
-        _isLocked = !_isLocked;
-
-        // Visual feedback on lock button
-        var colors = lockBtn.colors;
-        colors.normalColor = _isLocked
-            ? new Color(0.17f, 0.16f, 0.43f) // your purple
-            : Color.white;
-        lockBtn.colors = colors;
-
-        // Disable drag while locked
-        var placeFurnitureScript = FindObjectOfType<ARPlaceFurniture>();
-        // Lock is read by ARPlaceFurniture to prevent moving
-        Debug.Log(_isLocked ? "Object locked" : "Object unlocked");
-    }
-
-    void ToggleMenu()
-    {
-        _menuOpen = !_menuOpen;
-        menuPanel.SetActive(_menuOpen);
-    }
-
-    void ResetScene()
-    {
-        placeFurniture.ResetScene(); // ← delegate to ARPlaceFurniture
-        selector.Deselect();
-        _menuOpen = false;
-        menuPanel?.SetActive(false);
-    }
-
-    void DuplicateSelected()
-    {
-        placeFurniture.DuplicateSelected(); // ← delegate to ARPlaceFurniture
-        _menuOpen = false;
-        menuPanel?.SetActive(false);
-    }
-
-    void OpenHelp()
-    {
-        Debug.Log("Help — tutorial coming soon");
-        _menuOpen = false;
-        menuPanel.SetActive(false);
-    }
-
     void TakeScreenshot()
     {
         StartCoroutine(CaptureScreenshot());
@@ -186,20 +203,15 @@ public class ARUIManager : MonoBehaviour
 
     System.Collections.IEnumerator CaptureScreenshot()
     {
-        // Hide UI
         gameObject.SetActive(false);
 
-        // Hide plane visualizations
         var planes = FindObjectsOfType<UnityEngine.XR.ARFoundation.ARPlane>();
         foreach (var plane in planes)
-        {
             foreach (var r in plane.GetComponentsInChildren<Renderer>())
                 r.enabled = false;
-        }
 
         yield return new WaitForEndOfFrame();
 
-        // Capture
         var texture = ScreenCapture.CaptureScreenshotAsTexture();
         var bytes = texture.EncodeToPNG();
         var path = System.IO.Path.Combine(
@@ -209,17 +221,13 @@ public class ARUIManager : MonoBehaviour
         System.IO.File.WriteAllBytes(path, bytes);
         Destroy(texture);
 
-        // Restore UI
         gameObject.SetActive(true);
         foreach (var plane in planes)
-        {
             foreach (var r in plane.GetComponentsInChildren<Renderer>())
                 r.enabled = true;
-        }
 
         Debug.Log($"Screenshot saved: {path}");
 
-        // Notify Flutter to save to photo library
 #if !UNITY_EDITOR
         NativeAPI.SendMessageToFlutter($"ScreenshotSaved:{path}");
 #endif

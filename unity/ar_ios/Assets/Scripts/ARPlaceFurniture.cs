@@ -114,6 +114,9 @@ public class ARPlaceFurniture : MonoBehaviour
         }
         else if (Input.touchCount == 2 && _selector.HasSelection)
         {
+            var lockComp = _selector.SelectedObject.GetComponent<FurnitureLock>();
+            if (lockComp != null && lockComp.IsLocked) return;
+
             // Two fingers: rotate
             Touch t0 = Input.GetTouch(0);
             Touch t1 = Input.GetTouch(1);
@@ -178,6 +181,9 @@ public class ARPlaceFurniture : MonoBehaviour
         // Keyboard rotation — acts on selected object
         if (_selector != null && _selector.HasSelection)
         {
+            var lockComp = _selector.SelectedObject.GetComponent<FurnitureLock>();
+            bool isLocked = lockComp != null && lockComp.IsLocked;
+
             if (Input.GetKey(KeyCode.R))
                 _selector.SelectedObject.transform.Rotate(
                     Vector3.up, rotationSpeed * 100f * Time.deltaTime, Space.World);
@@ -364,6 +370,7 @@ public class ARPlaceFurniture : MonoBehaviour
 
             // Add selection indicator to spawned object
             newObject.AddComponent<SelectionIndicator>();
+            newObject.AddComponent<FurnitureLock>();
 
             _placedObjects.Add(newObject);
             targetPosition = hitPose.position;
@@ -386,10 +393,11 @@ public class ARPlaceFurniture : MonoBehaviour
     void TryMoveSelected(Vector2 screenPosition)
     {
 
-        var uiManager = FindObjectOfType<ARUIManager>();
-        if (uiManager != null && uiManager.IsLocked) return;
-
         if (!_selector.HasSelection) return;
+
+        // Check this specific object's lock state
+        var lockComp = _selector.SelectedObject.GetComponent<FurnitureLock>();
+        if (lockComp != null && lockComp.IsLocked) return;
 
         if (raycastManager.Raycast(screenPosition, rayHits, activePlaneType))
         {
@@ -420,6 +428,10 @@ public class ARPlaceFurniture : MonoBehaviour
             Destroy(existingIndicator);
 
         duplicate.AddComponent<SelectionIndicator>();
+
+        var existingLock = duplicate.GetComponent<FurnitureLock>();
+        if (existingLock != null) Destroy(existingLock);
+        duplicate.AddComponent<FurnitureLock>();
 
         // Track it properly
         _placedObjects.Add(duplicate);
