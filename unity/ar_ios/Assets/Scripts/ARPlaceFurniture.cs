@@ -22,6 +22,7 @@ public class ARPlaceFurniture : MonoBehaviour
     private bool _isDraggingObject = false;
     private ARObjectSelector _selector;
     private bool _hasPlacedFirstObject;
+    private List<GameObject> _placedObjects = new List<GameObject>();
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -300,13 +301,30 @@ public class ARPlaceFurniture : MonoBehaviour
 
     public void ClearScene()
     {
-        if (spawnedObject != null)
+
+        var uiManager = FindObjectOfType<ARUIManager>();
+
+        foreach (var obj in _placedObjects)
         {
-            Destroy(spawnedObject);
-            spawnedObject = null;
+            if (obj != null) Destroy(obj);
         }
+        _placedObjects.Clear();
+
+        _selector?.Deselect();
         isDragging = false;
         _hasPlacedFirstObject = false;
+        uiManager?.ShowTapToPlaceHint(true);
+    }
+
+    public void RemoveFromTracking(GameObject obj)
+    {
+        _placedObjects.Remove(obj);
+        if (_placedObjects.Count == 0)
+        {
+            _hasPlacedFirstObject = false;
+            var uiManager = FindObjectOfType<ARUIManager>();
+            uiManager?.ShowTapToPlaceHint(true);
+        }
     }
 
     GameObject GetTouchedObject(Vector2 screenPosition)
@@ -347,8 +365,12 @@ public class ARPlaceFurniture : MonoBehaviour
             // Add selection indicator to spawned object
             newObject.AddComponent<SelectionIndicator>();
 
+            _placedObjects.Add(newObject);
             targetPosition = hitPose.position;
             _hasPlacedFirstObject = true;
+
+            var uiManager = FindObjectOfType<ARUIManager>();
+            uiManager?.ShowTapToPlaceHint(false);
 
             // Delay select by one frame so SelectionIndicator.Start() runs first
             StartCoroutine(SelectNextFrame(newObject));

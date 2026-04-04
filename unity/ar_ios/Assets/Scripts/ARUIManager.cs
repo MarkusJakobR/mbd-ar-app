@@ -25,6 +25,7 @@ public class ARUIManager : MonoBehaviour
 
     [Header("Variables")]
     [SerializeField] private float rotationSpeed = 100f;
+    [SerializeField] private GameObject tapToPlaceHint;
 
 
     private bool _rotatingClockwise = false;
@@ -97,10 +98,18 @@ public class ARUIManager : MonoBehaviour
     void UpdateButtonVisibility(bool hasSelection)
     {
         // These only make sense when something is selected
-        rotateClockwiseBtn.gameObject.SetActive(hasSelection);
-        rotateCounterBtn.gameObject.SetActive(hasSelection);
-        deleteBtn.gameObject.SetActive(hasSelection);
-        lockBtn.gameObject.SetActive(hasSelection);
+        rotateClockwiseBtn?.gameObject.SetActive(hasSelection);
+        rotateCounterBtn?.gameObject.SetActive(hasSelection);
+        deleteBtn?.gameObject.SetActive(hasSelection);
+        lockBtn?.gameObject.SetActive(hasSelection);
+    }
+
+    public void ShowTapToPlaceHint(bool show)
+    {
+        if (tapToPlaceHint != null)
+            tapToPlaceHint.SetActive(show);
+        else
+            Debug.LogWarning("tapToPlaceHint is not assigned in ARUIManager");
     }
 
     void RotateClockwise()

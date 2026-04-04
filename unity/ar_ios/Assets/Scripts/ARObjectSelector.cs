@@ -44,7 +44,13 @@ public class ARObjectSelector : MonoBehaviour
 
     public void DeleteSelected()
     {
+
         if (_selectedObject == null) return;
+
+        // Remove from ARPlaceFurniture tracking
+        var placeFurniture = FindObjectOfType<ARPlaceFurniture>();
+        placeFurniture?.RemoveFromTracking(_selectedObject);
+
         Destroy(_selectedObject);
         _selectedObject = null;
         OnObjectDeselected?.Invoke();
