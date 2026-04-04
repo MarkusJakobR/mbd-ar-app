@@ -401,4 +401,38 @@ public class ARPlaceFurniture : MonoBehaviour
             isDragging = true;
         }
     }
+
+    public void DuplicateSelected()
+    {
+        if (!_selector.HasSelection) return;
+
+        var original = _selector.SelectedObject;
+        var duplicate = Instantiate(
+            original,
+            original.transform.position + Vector3.right * 0.5f,
+            original.transform.rotation
+        );
+
+        // Add selection indicator since Instantiate copies components
+        // but SelectionIndicator needs to be freshly added to subscribe to events
+        var existingIndicator = duplicate.GetComponent<SelectionIndicator>();
+        if (existingIndicator != null)
+            Destroy(existingIndicator);
+
+        duplicate.AddComponent<SelectionIndicator>();
+
+        // Track it properly
+        _placedObjects.Add(duplicate);
+
+        var uiManager = FindObjectOfType<ARUIManager>();
+        uiManager?.ShowTapToPlaceHint(false);
+
+        // Select next frame so SelectionIndicator.Start() runs first
+        StartCoroutine(SelectNextFrame(duplicate));
+    }
+
+    public void ResetScene()
+    {
+        ClearScene(); // ClearScene already handles everything correctly
+    }
 }

@@ -159,28 +159,17 @@ public class ARUIManager : MonoBehaviour
 
     void ResetScene()
     {
-        _isLocked = false;
-        placeFurniture.ClearScene();
+        placeFurniture.ResetScene(); // ← delegate to ARPlaceFurniture
         selector.Deselect();
         _menuOpen = false;
-        menuPanel.SetActive(false);
+        menuPanel?.SetActive(false);
     }
 
     void DuplicateSelected()
     {
-        if (!selector.HasSelection) return;
-
-        var original = selector.SelectedObject;
-        var duplicate = Instantiate(
-            original,
-            original.transform.position + Vector3.right * 0.5f,
-            original.transform.rotation
-        );
-
-        duplicate.AddComponent<SelectionIndicator>();
-        selector.Select(duplicate);
+        placeFurniture.DuplicateSelected(); // ← delegate to ARPlaceFurniture
         _menuOpen = false;
-        menuPanel.SetActive(false);
+        menuPanel?.SetActive(false);
     }
 
     void OpenHelp()
