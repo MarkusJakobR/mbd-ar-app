@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -20,6 +21,7 @@ public class ARPlaceFurniture : MonoBehaviour
     private ARPlaneManager planeManager;
     private bool _isDraggingObject = false;
     private ARObjectSelector _selector;
+    private bool _hasPlacedFirstObject;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -92,7 +94,7 @@ public class ARPlaceFurniture : MonoBehaviour
                     // Tapped empty space
                     if (_selector.HasSelection)
                         _selector.Deselect();
-                    else
+                    else if (!_hasPlacedFirstObject)
                         TryPlaceObject(touch.position); // place new object
                 }
             }
@@ -155,7 +157,7 @@ public class ARPlaceFurniture : MonoBehaviour
             {
                 if (_selector.HasSelection)
                     _selector.Deselect();
-                else
+                else if (!_hasPlacedFirstObject)
                     TryPlaceObject(Input.mousePosition);
             }
         }
@@ -304,6 +306,7 @@ public class ARPlaceFurniture : MonoBehaviour
             spawnedObject = null;
         }
         isDragging = false;
+        _hasPlacedFirstObject = false;
     }
 
     GameObject GetTouchedObject(Vector2 screenPosition)
@@ -344,10 +347,18 @@ public class ARPlaceFurniture : MonoBehaviour
             // Add selection indicator to spawned object
             newObject.AddComponent<SelectionIndicator>();
 
-            // Auto select newly placed object
-            _selector.Select(newObject);
             targetPosition = hitPose.position;
+            _hasPlacedFirstObject = true;
+
+            // Delay select by one frame so SelectionIndicator.Start() runs first
+            StartCoroutine(SelectNextFrame(newObject));
         }
+    }
+
+    IEnumerator SelectNextFrame(GameObject obj)
+    {
+        yield return null; // wait one frame
+        _selector.Select(obj);
     }
 
     void TryMoveSelected(Vector2 screenPosition)
