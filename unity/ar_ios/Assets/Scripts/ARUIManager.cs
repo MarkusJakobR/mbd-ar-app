@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
 
 public class ARUIManager : MonoBehaviour
 {
@@ -25,6 +26,11 @@ public class ARUIManager : MonoBehaviour
     [Header("Variables")]
     [SerializeField] private float rotationSpeed = 100f;
     [SerializeField] private GameObject tapToPlaceHint;
+
+    [Header("UI Panels to hide for screenshot")]
+    [SerializeField] private GameObject rightSidePanel;   // parent of right buttons
+    [SerializeField] private GameObject topRightMenu;
+    [SerializeField] private GameObject bottomPanel;
 
     private bool _rotatingClockwise = false;
     private bool _rotatingCounter = false;
@@ -100,21 +106,14 @@ public class ARUIManager : MonoBehaviour
                 Vector3.up, -rotationSpeed * Time.deltaTime, Space.World);
     }
 
-    void AddPointerHold(Button btn, System.Action onDown, System.Action onUp)
+    void AddPointerHold(Button btn, Action onDown, Action onUp)
     {
-        var trigger = btn.gameObject.AddComponent<EventTrigger>();
+        var existing = btn.GetComponent<EventTrigger>();
+        if (existing != null) Destroy(existing);
 
-        var down = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
-        down.callback.AddListener(_ => onDown());
-        trigger.triggers.Add(down);
-
-        var up = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
-        up.callback.AddListener(_ => onUp());
-        trigger.triggers.Add(up);
-
-        var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
-        exit.callback.AddListener(_ => onUp());
-        trigger.triggers.Add(exit);
+        var hold = btn.gameObject.AddComponent<HoldButton>();
+        hold.onDown = onDown;
+        hold.onUp = onUp;
     }
 
     void UpdateButtonVisibility(bool hasSelection)
@@ -123,12 +122,6 @@ public class ARUIManager : MonoBehaviour
         rotateCounterBtn?.gameObject.SetActive(hasSelection);
         deleteBtn?.gameObject.SetActive(hasSelection);
         lockBtn?.gameObject.SetActive(hasSelection);
-
-        if (hasSelection)
-        {
-            var lockComp = selector.SelectedObject?.GetComponent<FurnitureLock>();
-            UpdateLockButtonVisual(lockComp != null && lockComp.IsLocked);
-        }
     }
 
     void ToggleLock()
@@ -139,19 +132,6 @@ public class ARUIManager : MonoBehaviour
         if (lockComp == null) return;
 
         lockComp.Toggle();
-        UpdateLockButtonVisual(lockComp.IsLocked);
-    }
-
-    void UpdateLockButtonVisual(bool isLocked)
-    {
-        if (lockBtn == null) return;
-
-        var colors = lockBtn.colors;
-        colors.normalColor = isLocked
-            ? new Color(0.17f, 0.16f, 0.43f)
-            : Color.white;
-        lockBtn.colors = colors;
-
     }
 
     void DeleteSelected()
@@ -203,8 +183,13 @@ public class ARUIManager : MonoBehaviour
 
     System.Collections.IEnumerator CaptureScreenshot()
     {
-        gameObject.SetActive(false);
+        // Hide only the UI panels, not the whole Canvas
+        if (rightSidePanel != null) rightSidePanel.SetActive(false);
+        if (topRightMenu != null) topRightMenu.SetActive(false);
+        if (tapToPlaceHint != null) tapToPlaceHint.SetActive(false);
+        if (bottomPanel != null) bottomPanel.SetActive(false);
 
+        // Hide plane visualizations
         var planes = FindObjectsOfType<UnityEngine.XR.ARFoundation.ARPlane>();
         foreach (var plane in planes)
             foreach (var r in plane.GetComponentsInChildren<Renderer>())
@@ -212,6 +197,7 @@ public class ARUIManager : MonoBehaviour
 
         yield return new WaitForEndOfFrame();
 
+        // Capture
         var texture = ScreenCapture.CaptureScreenshotAsTexture();
         var bytes = texture.EncodeToPNG();
         var path = System.IO.Path.Combine(
@@ -221,10 +207,20 @@ public class ARUIManager : MonoBehaviour
         System.IO.File.WriteAllBytes(path, bytes);
         Destroy(texture);
 
-        gameObject.SetActive(true);
+        // Restore UI panels
+        if (rightSidePanel != null) rightSidePanel.SetActive(true);
+        if (topRightMenu != null) topRightMenu.SetActive(true);
+        if (bottomPanel != null) bottomPanel.SetActive(true);
+
+        // Restore planes
         foreach (var plane in planes)
             foreach (var r in plane.GetComponentsInChildren<Renderer>())
                 r.enabled = true;
+
+        // Restore hint only if it was showing before
+        if (tapToPlaceHint != null)
+            ShowTapToPlaceHint(!selector.HasSelection &&
+                FindObjectOfType<ARPlaceFurniture>()?.HasPlacedObjects == false);
 
         Debug.Log($"Screenshot saved: {path}");
 

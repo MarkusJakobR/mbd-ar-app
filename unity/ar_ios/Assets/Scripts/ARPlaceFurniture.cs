@@ -23,6 +23,9 @@ public class ARPlaceFurniture : MonoBehaviour
     private ARObjectSelector _selector;
     private bool _hasPlacedFirstObject;
     private List<GameObject> _placedObjects = new List<GameObject>();
+    public bool HasPlacedObjects => _placedObjects.Count > 0;
+    private bool _rotatingClockwise = false;
+    private bool _rotatingCounter = false;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -64,6 +67,23 @@ public class ARPlaceFurniture : MonoBehaviour
             Vector3 euler = _selector.SelectedObject.transform.eulerAngles;
             _selector.SelectedObject.transform.eulerAngles =
                 new Vector3(0f, euler.y, 0f);
+        }
+
+        // Handle rotation from Flutter buttons
+        if (_selector != null && _selector.HasSelection)
+        {
+            var lockComp = _selector.SelectedObject.GetComponent<FurnitureLock>();
+            bool isLocked = lockComp != null && lockComp.IsLocked;
+
+            if (!isLocked)
+            {
+                if (_rotatingClockwise)
+                    _selector.SelectedObject.transform.Rotate(
+                        Vector3.up, 100f * Time.deltaTime, Space.World);
+                if (_rotatingCounter)
+                    _selector.SelectedObject.transform.Rotate(
+                        Vector3.up, -100f * Time.deltaTime, Space.World);
+            }
         }
     }
 
@@ -387,6 +407,8 @@ public class ARPlaceFurniture : MonoBehaviour
     IEnumerator SelectNextFrame(GameObject obj)
     {
         yield return null; // wait one frame
+        yield return null; // wait one frame
+        yield return null; // wait one frame
         _selector.Select(obj);
     }
 
@@ -446,5 +468,17 @@ public class ARPlaceFurniture : MonoBehaviour
     public void ResetScene()
     {
         ClearScene(); // ClearScene already handles everything correctly
+    }
+
+    public void StartRotating(bool clockwise)
+    {
+        if (clockwise) _rotatingClockwise = true;
+        else _rotatingCounter = true;
+    }
+
+    public void StopRotating()
+    {
+        _rotatingClockwise = false;
+        _rotatingCounter = false;
     }
 }

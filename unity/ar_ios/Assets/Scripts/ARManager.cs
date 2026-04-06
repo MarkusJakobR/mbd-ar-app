@@ -7,7 +7,7 @@ using UnityEngine.XR.ARFoundation;
 public class ARManager : MonoBehaviour
 {
     [SerializeField] private ARPlaceFurniture placeFurniture;
-    [SerializeField] private bool useLocalPrefabForTesting = true;
+    [SerializeField] private bool useLocalPrefabForTesting = false;
 
     // Editor testing — set this to whatever addressable key you want to test with
     [SerializeField] private string editorTestKey = "brown_cabinet";
