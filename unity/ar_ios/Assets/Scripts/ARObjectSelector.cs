@@ -7,7 +7,7 @@ public class ARObjectSelector : MonoBehaviour
     public static ARObjectSelector Instance { get; private set; }
 
     private GameObject _selectedObject;
-    private ARPlaceFurniture _placeFurniture;
+    // private ARPlaceFurniture _placeFurniture;
 
     // Events other scripts can listen to
     public event System.Action<GameObject> OnObjectSelected;
@@ -16,7 +16,7 @@ public class ARObjectSelector : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        _placeFurniture = FindObjectOfType<ARPlaceFurniture>();
+        // _placeFurniture = FindObjectOfType<ARPlaceFurniture>();
     }
 
     public GameObject SelectedObject => _selectedObject;
