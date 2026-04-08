@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../models/product.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 class ARViewPage extends StatefulWidget {
   final Product product;
@@ -56,8 +59,10 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
   }
 
   // Single helper for all Unity messages
-  void _post(String method, [String message = '']) =>
-      _unityController?.postMessage('ARManager', method, message);
+  void _post(String method, [String message = '']) {
+    print('Flutter: Sending to Unity -> Method: $method, Message: $message');
+    _unityController?.postMessage('ARManager', method, message);
+  }
 
   Future<void> _onBack() async {
     _stopCamera();
@@ -95,7 +100,10 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
         }
         break;
       case 'ObjectSelected':
-        if (mounted) setState(() => _objectSelected = true);
+        if (mounted) {
+          setState(() => _objectSelected = true);
+          _isLocked = false;
+        }
         break;
       case 'ObjectDeselected':
         if (mounted)
@@ -108,14 +116,13 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
         if (msg.startsWith('ScreenshotSaved:')) {
           final path = msg.replaceFirst('ScreenshotSaved:', '');
           _handleScreenshotSaved(path);
+        } else if (msg.startsWith('LockState:')) {
+          // Handle lock state message from Unity
+          final isLocked = msg.replaceFirst('LockState:', '') == 'true';
+          if (mounted) setState(() => _isLocked = isLocked);
         }
         break;
     }
-    // print('Message from Unity: $message');
-    // if (message.toString() == 'OnUnityReady' && !_unityReady) {
-    //   if (mounted) setState(() => _unityReady = true);
-    //   _sendProductToUnity();
-    // }
   }
 
   void _sendProductToUnity() {
@@ -126,13 +133,75 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
     print('Product sent to Unity: ${widget.product.name}');
   }
 
-  void _handleScreenshotSaved(String path) {
-    // Show a snackbar confirming the screenshot
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Screenshot saved')));
-    // You can also save to photo library using image_gallery_saver package
-    print('Screenshot path: $path');
+  Future<void> _handleScreenshotSaved(String path) async {
+    try {
+      print('Screenshot path received: $path');
+
+      // Request permission FIRST
+      if (Platform.isIOS) {
+        var status = await Permission.photos.status;
+        print('Current permission status: $status');
+
+        if (!status.isGranted) {
+          print('Requesting photo permission...');
+          status = await Permission.photos.request();
+          print('Permission result: $status');
+        }
+
+        if (status.isDenied || status.isPermanentlyDenied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Photo permission denied. Enable in Settings.',
+                ),
+                action: SnackBarAction(
+                  label: 'Settings',
+                  onPressed: () => openAppSettings(),
+                ),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      // Check if file exists
+      final File imageFile = File(path);
+      print('File exists: ${await imageFile.exists()}');
+
+      if (await imageFile.exists()) {
+        print('Saving to gallery...');
+        final result = await ImageGallerySaver.saveFile(path);
+        print('Save result: $result');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result != null && result['isSuccess'] == true
+                    ? 'Screenshot saved to Photos'
+                    : 'Failed to save screenshot',
+              ),
+            ),
+          );
+        }
+      } else {
+        print('File does not exist at path: $path');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Screenshot file not found')),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error saving screenshot: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   @override
@@ -151,44 +220,36 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
             onPressed: _onBack,
           ),
           actions: [
-            PopupMenuButton(
-              icon: const Icon(Icons.more_vert),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  onTap: () => _post('ResetScene'),
-                  child: const ListTile(
-                    leading: Icon(Icons.refresh),
-                    title: Text('Reset'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                PopupMenuItem(
-                  enabled: _objectSelected,
-                  onTap: () {
-                    if (_objectSelected) _post('DuplicateSelected');
-                  },
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.copy,
-                      color: _objectSelected ? null : Colors.grey,
+            // Reset button
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => _post('ResetScene'),
+              tooltip: 'Reset',
+            ),
+            // Duplicate button - only show when object selected
+            if (_objectSelected)
+              IconButton(
+                icon: const Icon(Icons.copy),
+                onPressed: () {
+                  print('Flutter: Duplicate button pressed');
+                  _post('DuplicateSelected');
+                },
+                tooltip: 'Duplicate',
+              ),
+            // Help button
+            IconButton(
+              icon: const Icon(Icons.help_outline),
+              onPressed: () {
+                // Add help functionality here
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Help: Tap to place, drag to move, pinch to rotate',
                     ),
-                    title: Text(
-                      'Duplicate',
-                      style: TextStyle(
-                        color: _objectSelected ? null : Colors.grey,
-                      ),
-                    ),
-                    contentPadding: EdgeInsets.zero,
                   ),
-                ),
-                const PopupMenuItem(
-                  child: ListTile(
-                    leading: Icon(Icons.help_outline),
-                    title: Text('Help'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
+                );
+              },
+              tooltip: 'Help',
             ),
           ],
         ),
@@ -285,14 +346,20 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
     String? tooltip,
   }) {
     return GestureDetector(
-      onTapDown: (_) => onDown(),
-      onTapUp: (_) => onUp(),
-      onTapCancel: onUp,
-      child: Tooltip(
-        message: tooltip ?? '',
-        child: _buttonContainer(
-          child: Icon(icon, color: Colors.black87, size: 22),
-        ),
+      onTapDown: (_) {
+        print('Flutter: Button pressed - $tooltip');
+        onDown();
+      },
+      onTapUp: (_) {
+        print('Flutter: Button released - $tooltip');
+        onUp();
+      },
+      onTapCancel: () {
+        print('Flutter: Button cancelled - $tooltip');
+        onUp();
+      },
+      child: _buttonContainer(
+        child: Icon(icon, color: Colors.black87, size: 22),
       ),
     );
   }

@@ -78,11 +78,23 @@ public class ARPlaceFurniture : MonoBehaviour
             if (!isLocked)
             {
                 if (_rotatingClockwise)
+                {
+
+                    Debug.Log("Update: Rotating clockwise NOW");
                     _selector.SelectedObject.transform.Rotate(
-                        Vector3.up, 100f * Time.deltaTime, Space.World);
+                        Vector3.up, 100f * Time.deltaTime * rotationSpeed, Space.World);
+                }
                 if (_rotatingCounter)
+                {
+                    Debug.Log("Update: Rotating counter NOW");
                     _selector.SelectedObject.transform.Rotate(
-                        Vector3.up, -100f * Time.deltaTime, Space.World);
+                        Vector3.up, -100f * Time.deltaTime * rotationSpeed, Space.World);
+                }
+            }
+            else
+            {
+                Debug.Log("Update: Object is LOCKED, cannot rotate");
+
             }
         }
     }
@@ -434,51 +446,82 @@ public class ARPlaceFurniture : MonoBehaviour
 
     public void DuplicateSelected()
     {
-        if (!_selector.HasSelection) return;
+        Debug.Log("=== DuplicateSelected START ===");
+        Debug.Log($"_placedObjects count BEFORE: {_placedObjects.Count}");
+
+        if (!_selector.HasSelection)
+        {
+            Debug.Log("No selection, aborting");
+            return;
+        }
 
         var original = _selector.SelectedObject;
+        Debug.Log($"Duplicating: {original.name}");
+
         var duplicate = Instantiate(
             original,
             original.transform.position + Vector3.right * 0.5f,
             original.transform.rotation
         );
 
-        // Add selection indicator since Instantiate copies components
-        // but SelectionIndicator needs to be freshly added to subscribe to events
+        Debug.Log($"Instantiated: {duplicate.name}");
+
+        // Remove ALL components that might have been copied
         var existingIndicator = duplicate.GetComponent<SelectionIndicator>();
         if (existingIndicator != null)
+        {
+            Debug.Log("Destroying existing SelectionIndicator");
             Destroy(existingIndicator);
-
-        duplicate.AddComponent<SelectionIndicator>();
+        }
 
         var existingLock = duplicate.GetComponent<FurnitureLock>();
-        if (existingLock != null) Destroy(existingLock);
+        if (existingLock != null)
+        {
+            Debug.Log("Destroying existing FurnitureLock");
+            Destroy(existingLock);
+        }
+
+        // Add fresh components
+        duplicate.AddComponent<SelectionIndicator>();
         duplicate.AddComponent<FurnitureLock>();
+        Debug.Log("Added fresh components");
 
         // Track it properly
         _placedObjects.Add(duplicate);
+        Debug.Log($"_placedObjects count AFTER: {_placedObjects.Count}");
 
         var uiManager = FindObjectOfType<ARUIManager>();
         uiManager?.ShowTapToPlaceHint(false);
 
-        // Select next frame so SelectionIndicator.Start() runs first
-        StartCoroutine(SelectNextFrame(duplicate));
+        Debug.Log("=== DuplicateSelected END ===");
     }
 
     public void ResetScene()
     {
+        Debug.Log("===== RESET CALLED =====");
         ClearScene(); // ClearScene already handles everything correctly
     }
 
     public void StartRotating(bool clockwise)
     {
-        if (clockwise) _rotatingClockwise = true;
-        else _rotatingCounter = true;
+        Debug.Log($"ARPlaceFurniture: StartRotating called with clockwise={clockwise}");
+        if (clockwise)
+        {
+            _rotatingClockwise = true;
+            Debug.Log("ARPlaceFurniture: _rotatingClockwise set to TRUE");
+        }
+        else
+        {
+            _rotatingCounter = true;
+            Debug.Log("ARPlaceFurniture: _rotatingCounter set to TRUE");
+        }
     }
 
     public void StopRotating()
     {
+        Debug.Log("ARPlaceFurniture: StopRotating called");
         _rotatingClockwise = false;
         _rotatingCounter = false;
+        Debug.Log("ARPlaceFurniture: Both rotation flags set to FALSE");
     }
 }

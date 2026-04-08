@@ -767,7 +767,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6fe46378d2364177884c9ea1e0c0d16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  placeFurniture: {fileID: 0}
+  placeFurniture: {fileID: 1137906447}
   useLocalPrefabForTesting: 0
   editorTestKey: brown_cabinet
 --- !u!4 &1137906446

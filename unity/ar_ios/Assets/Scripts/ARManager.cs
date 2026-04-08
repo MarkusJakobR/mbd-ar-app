@@ -38,12 +38,17 @@ public class ARManager : MonoBehaviour
             StartCamera();
     }
 
-    void SendToFlutter(string message)
+    private void SendToFlutter(string message)
     {
         if (_messageManager != null)
             _messageManager.SendMessageToFlutter(message);
         else
             Debug.LogWarning("UnityMessageManager not found on ARManager");
+    }
+
+    public void SendLockStateToFlutter(bool isLocked)
+    {
+        SendToFlutter($"LockState:{isLocked.ToString().ToLower()}");
     }
 
     IEnumerator InitializeAddressables()
@@ -110,9 +115,48 @@ public class ARManager : MonoBehaviour
     }
 
     // Flutter button receivers — all take string param as required by postMessage
-    public void RotateClockwise(string message) => placeFurniture?.StartRotating(true);
-    public void RotateCounter(string message) => placeFurniture?.StartRotating(false);
-    public void StopRotating(string message) => placeFurniture?.StopRotating();
+    public void RotateClockwise(string message)
+    {
+        Debug.Log("ARManager: RotateClockwise received from Flutter");
+        if (placeFurniture != null)
+        {
+            placeFurniture.StartRotating(true);
+            Debug.Log("ARManager: Called StartRotating(true)");
+        }
+        else
+        {
+            Debug.LogError("ARManager: placeFurniture is NULL!");
+        }
+    }
+
+    public void RotateCounter(string message)
+    {
+        Debug.Log("ARManager: RotateCounter received from Flutter");
+        if (placeFurniture != null)
+        {
+            placeFurniture.StartRotating(false);
+            Debug.Log("ARManager: Called StartRotating(false)");
+        }
+        else
+        {
+            Debug.LogError("ARManager: placeFurniture is NULL!");
+        }
+    }
+
+    public void StopRotating(string message)
+    {
+        Debug.Log("ARManager: StopRotating received from Flutter");
+        if (placeFurniture != null)
+        {
+            placeFurniture.StopRotating();
+            Debug.Log("ARManager: Called StopRotating()");
+        }
+        else
+        {
+            Debug.LogError("ARManager: placeFurniture is NULL!");
+        }
+    }
+
     public void DeleteSelected(string message) => _selector?.DeleteSelected();
     public void DuplicateSelected(string message) => placeFurniture?.DuplicateSelected();
     public void ResetScene(string message) => placeFurniture?.ResetScene();
