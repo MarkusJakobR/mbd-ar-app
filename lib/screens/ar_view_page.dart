@@ -224,39 +224,6 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
             icon: const Icon(Icons.arrow_back),
             onPressed: _onBack,
           ),
-          actions: [
-            // Reset button
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () => _post('ResetScene'),
-              tooltip: 'Reset',
-            ),
-            // Duplicate button - only show when object selected
-            if (_objectSelected)
-              IconButton(
-                icon: const Icon(Icons.copy),
-                onPressed: () {
-                  print('Flutter: Duplicate button pressed');
-                  _post('DuplicateSelected');
-                },
-                tooltip: 'Duplicate',
-              ),
-            // Help button
-            IconButton(
-              icon: const Icon(Icons.help_outline),
-              onPressed: () {
-                // Add help functionality here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Help: Tap to place, drag to move, pinch to rotate',
-                    ),
-                  ),
-                );
-              },
-              tooltip: 'Help',
-            ),
-          ],
         ),
         body: Stack(
           children: [
@@ -283,6 +250,44 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
                   ),
                 ),
               ),
+            Positioned(
+              right: 16,
+              top: 32,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildIconButton(
+                      icon: Icons.refresh,
+                      onTap: () => _post('ResetScene'),
+                      tooltip: 'Reset',
+                    ),
+                    const SizedBox(height: 12),
+                    if (_objectSelected)
+                      _buildIconButton(
+                        icon: Icons.copy,
+                        onTap: () => _post('DuplicateSelected'),
+                        tooltip: 'Duplicate',
+                      ),
+                    const SizedBox(height: 12),
+                    _buildIconButton(
+                      icon: Icons.help_outline,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Help: Tap to place, drag to move, pinch to rotate',
+                            ),
+                          ),
+                        );
+                      },
+                      tooltip: 'Help',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // Right side buttons — only when object selected
             if (_objectSelected && _unityReady)
               Positioned(
