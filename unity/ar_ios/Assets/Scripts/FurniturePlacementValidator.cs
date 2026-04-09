@@ -45,16 +45,24 @@ public class FurniturePlacementValidator : MonoBehaviour
         {
             if (hit == furnitureCollider) continue; // ignore self
 
+            // Check 1: Invalid plane alignment
             var plane = hit.GetComponent<ARPlane>();
-            if (plane == null) continue;
-
-            if (IsInvalidAlignment(plane.alignment))
+            if (plane != null && IsInvalidAlignment(plane.alignment))
             {
                 foundInvalid = true;
                 break;
             }
-        }
 
+            // Check 2: Collision with another furniture object
+            var otherFurniture = hit.GetComponent<FurnitureData>();
+            if (otherFurniture != null && hit.gameObject != gameObject)
+            {
+                Debug.Log($"{gameObject.name} overlapping with {hit.gameObject.name}");
+                foundInvalid = true;
+                break;
+            }
+
+        }
         // Only update material if state actually changed — avoids unnecessary material swaps
         if (foundInvalid != isInvalid)
             SetInvalidAppearance(foundInvalid);
