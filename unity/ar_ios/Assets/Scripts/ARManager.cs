@@ -158,8 +158,30 @@ public class ARManager : MonoBehaviour
     }
 
     public void DeleteSelected(string message) => _selector?.DeleteSelected();
-    public void DuplicateSelected(string message) => placeFurniture?.DuplicateSelected();
-    public void ResetScene(string message) => placeFurniture?.ResetScene();
+    public void DuplicateSelected(string message)
+    {
+        Debug.Log($"=== ARManager.DuplicateSelected called === Instance ID: {GetInstanceID()} GameObject: {gameObject.name}");
+        if (placeFurniture != null)
+        {
+            placeFurniture.DuplicateSelected();
+        }
+        else
+        {
+            Debug.LogError("placeFurniture is NULL in DuplicateSelected");
+        }
+    }
+    public void ResetScene(string message)
+    {
+        Debug.Log($"=== ARManager.ResetScene called === Instance ID: {GetInstanceID()} GameObject: {gameObject.name}");
+        if (placeFurniture != null)
+        {
+            placeFurniture.ResetScene();
+        }
+        else
+        {
+            Debug.LogError("placeFurniture is NULL in ResetScene");
+        }
+    }
 
     public void ToggleLock(string message)
     {

@@ -139,16 +139,18 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
 
       // Request permission FIRST
       if (Platform.isIOS) {
-        var status = await Permission.photos.status;
+        var status = await Permission.photosAddOnly.status;
         print('Current permission status: $status');
 
         if (!status.isGranted) {
           print('Requesting photo permission...');
-          status = await Permission.photos.request();
+          status = await Permission.photosAddOnly.request();
           print('Permission result: $status');
         }
 
-        if (status.isDenied || status.isPermanentlyDenied) {
+        if (status.isDenied ||
+            status.isPermanentlyDenied ||
+            status.isRestricted) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -172,7 +174,10 @@ class _ARViewPageState extends State<ARViewPage> with WidgetsBindingObserver {
 
       if (await imageFile.exists()) {
         print('Saving to gallery...');
-        final result = await ImageGallerySaver.saveFile(path);
+        final result = await ImageGallerySaver.saveFile(
+          path,
+          isReturnPathOfIOS: true,
+        );
         print('Save result: $result');
 
         if (mounted) {

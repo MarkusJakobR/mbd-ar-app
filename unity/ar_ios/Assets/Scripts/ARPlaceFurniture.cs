@@ -26,6 +26,8 @@ public class ARPlaceFurniture : MonoBehaviour
     public bool HasPlacedObjects => _placedObjects.Count > 0;
     private bool _rotatingClockwise = false;
     private bool _rotatingCounter = false;
+    private bool _isDuplicating = false;
+    private bool _isResetting = false;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -447,11 +449,21 @@ public class ARPlaceFurniture : MonoBehaviour
     public void DuplicateSelected()
     {
         Debug.Log("=== DuplicateSelected START ===");
+
+        // Prevent re-entry
+        if (_isDuplicating)
+        {
+            Debug.LogWarning("DuplicateSelected already in progress - ignoring");
+            return;
+        }
+
+        _isDuplicating = true;
         Debug.Log($"_placedObjects count BEFORE: {_placedObjects.Count}");
 
         if (!_selector.HasSelection)
         {
             Debug.Log("No selection, aborting");
+            _isDuplicating = false;
             return;
         }
 
@@ -494,12 +506,23 @@ public class ARPlaceFurniture : MonoBehaviour
         uiManager?.ShowTapToPlaceHint(false);
 
         Debug.Log("=== DuplicateSelected END ===");
+
+        _isDuplicating = false;
     }
 
     public void ResetScene()
     {
-        Debug.Log("===== RESET CALLED =====");
-        ClearScene(); // ClearScene already handles everything correctly
+        if (_isResetting)
+        {
+            Debug.LogWarning("ResetScene already in progress - ignoring");
+            return;
+        }
+
+        _isResetting = true;
+        Debug.Log("=== ResetScene START ===");
+        ClearScene();
+        Debug.Log("=== ResetScene END ===");
+        _isResetting = false;
     }
 
     public void StartRotating(bool clockwise)
