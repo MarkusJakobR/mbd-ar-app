@@ -82,4 +82,6 @@ class Product {
         category.toLowerCase().contains(lowercaseQuery) ||
         brand.toLowerCase().contains(lowercaseQuery);
   }
+
+  bool get isTile => category.toLowerCase() == 'tile';
 }

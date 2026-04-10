@@ -747,6 +747,7 @@ GameObject:
   - component: {fileID: 1137906445}
   - component: {fileID: 1137906448}
   - component: {fileID: 1137906449}
+  - component: {fileID: 1137906450}
   m_Layer: 0
   m_Name: ARManager
   m_TagString: Untagged
@@ -808,6 +809,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f0d555a552e429a9e36a2bec4c1faf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1137906450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1137906444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ac2078be0ff243bdb4f7fb0b84dc6f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  raycastManager: {fileID: 1454090684}
+  planeManager: {fileID: 1454090685}
+  currentTileData: {fileID: 0}
+  tilePrefab: {fileID: 2283336243867268734, guid: 26df61a829d7741e69b2293d9d71d941, type: 3}
+  groutMaterial: {fileID: 0}
 --- !u!1 &1230537768
 GameObject:
   m_ObjectHideFlags: 0

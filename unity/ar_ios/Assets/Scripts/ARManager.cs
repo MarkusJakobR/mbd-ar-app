@@ -222,6 +222,35 @@ public class ARManager : MonoBehaviour
         SendToFlutter($"ScreenshotSaved:{path}");
     }
 
+
+    public void NotifyTileCount(int count, string tileName)
+    {
+        SendToFlutter($"TileCount:{count}|{tileName}");
+    }
+
+    public void OnTileSelected(string jsonMessage)
+    {
+        SetMode(ARMode.Tile);
+
+        var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
+        Debug.Log($"Tile selected: {data.name}");
+
+        if (tilePlacementSystem != null)
+        {
+            // Create TileData from product message
+            // You'll need to implement this based on your tile data structure
+            tilePlacementSystem.enabled = true;
+        }
+    }
+
+    public void ClearTiles(string message)
+    {
+        if (tilePlacementSystem != null)
+        {
+            tilePlacementSystem.ClearTiles();
+        }
+    }
+
     void Update()
     {
         if (!useLocalPrefabForTesting && isInitialized)
