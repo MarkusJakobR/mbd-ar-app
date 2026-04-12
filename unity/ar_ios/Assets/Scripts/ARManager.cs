@@ -216,6 +216,31 @@ public class ARManager : MonoBehaviour
         }
     }
 
+    public void RotateClockwiseTile(string message)
+    {
+        if (tilePlacementSystem != null)
+        {
+            tilePlacementSystem.StartRotatingTile(true);
+        }
+        else
+        {
+            Debug.LogError("ARManager: tilePlacementSystem is NULL");
+        }
+    }
+
+    public void RotateCounterTile(string message)
+    {
+        if (tilePlacementSystem != null)
+        {
+            tilePlacementSystem.StartRotatingTile(false);
+        }
+        else
+        {
+            Debug.LogError("ARManager: tilePlacementSystem is NULL");
+        }
+    }
+
+
     public void StopRotating(string message)
     {
         Debug.Log("ARManager: StopRotating received from Flutter");
@@ -227,6 +252,18 @@ public class ARManager : MonoBehaviour
         else
         {
             Debug.LogError("ARManager: placeFurniture is NULL!");
+        }
+    }
+
+    public void StopRotatingTile(string message)
+    {
+        if (tilePlacementSystem != null)
+        {
+            tilePlacementSystem.StopRotatingTile();
+        }
+        else
+        {
+            Debug.LogError("ARManager: Cannot stop rotating");
         }
     }
 

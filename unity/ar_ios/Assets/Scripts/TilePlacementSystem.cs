@@ -31,6 +31,9 @@ public class TilePlacementSystem : MonoBehaviour
     private Material tileMaterial;
     private Texture2D tileTexture;
     private float currentRotation = 0f;
+    private float degrees;
+    private bool _rotatingClockwise = false;
+    private bool _rotatingCounter = false;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -52,7 +55,22 @@ public class TilePlacementSystem : MonoBehaviour
         // Press R to rotate tiles (for testing)
         if (Input.GetKey(KeyCode.R) && tilePlane != null)
         {
-            RotateTiles(90f * Time.deltaTime); // Rotate by 45 degrees
+            degrees = 90f * Time.deltaTime;
+            RotateTiles(degrees); // Rotate by 45 degrees
+        }
+
+        if (_rotatingClockwise)
+        {
+            Debug.Log("Rotating tile clockwise");
+            degrees = 90f * Time.deltaTime;
+            RotateTiles(degrees);
+        }
+
+        if (_rotatingCounter)
+        {
+            Debug.Log("Rotating tile counter clockwise");
+            degrees = -90f * Time.deltaTime;
+            RotateTiles(degrees);
         }
 
     }
@@ -315,6 +333,18 @@ public class TilePlacementSystem : MonoBehaviour
         return material;
     }
 
+    public void StartRotatingTile(bool clockwise)
+    {
+        if (clockwise)
+        {
+            _rotatingClockwise = true;
+        }
+        else
+        {
+            _rotatingCounter = true;
+        }
+    }
+
     public void RotateTiles(float degrees)
     {
         if (tileMaterial == null)
@@ -329,6 +359,12 @@ public class TilePlacementSystem : MonoBehaviour
         ApplyRotationToMaterial(tileMaterial, currentRotation);
 
         Debug.Log($"Tiles rotated to {currentRotation}°");
+    }
+
+    public void StopRotatingTile()
+    {
+        _rotatingClockwise = false;
+        _rotatingCounter = false;
     }
 
     void ApplyRotationToMaterial(Material material, float degrees)

@@ -189,6 +189,33 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                 ),
               ),
 
+            if (_unityReady)
+              Positioned(
+                right: 16,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildHoldButton(
+                        icon: Icons.rotate_right,
+                        onDown: () => _post('RotateClockwiseTile'),
+                        onUp: () => _post('StopRotatingTile'),
+                        tooltip: 'Rotate right',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildHoldButton(
+                        icon: Icons.rotate_left,
+                        onDown: () => _post('RotateCounterTile'),
+                        onUp: () => _post('StopRotatingTile'),
+                        tooltip: 'Rotate left',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             // Tile mode instruction overlay
             if (_unityReady && _tileCount == 0)
               Positioned(
@@ -329,6 +356,31 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
             size: 22,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHoldButton({
+    required IconData icon,
+    required VoidCallback onDown,
+    required VoidCallback onUp,
+    String? tooltip,
+  }) {
+    return GestureDetector(
+      onTapDown: (_) {
+        print('Flutter: Button pressed - $tooltip');
+        onDown();
+      },
+      onTapUp: (_) {
+        print('Flutter: Button released - $tooltip');
+        onUp();
+      },
+      onTapCancel: () {
+        print('Flutter: Button cancelled - $tooltip');
+        onUp();
+      },
+      child: _buttonContainer(
+        child: Icon(icon, color: Colors.black87, size: 22),
       ),
     );
   }
