@@ -64,6 +64,7 @@ Shader "Custom/TileClipShader"
                 float4 _QuadPoint1;
                 float4 _QuadPoint2;
                 float4 _QuadPoint3;
+                float _Rotation;
             CBUFFER_END
             
             // Simplified point-in-polygon test for mobile
@@ -137,9 +138,19 @@ Shader "Custom/TileClipShader"
                 {
                     discard;
                 }
+
+                // Rotate UVs around center (0.5, 0.5)
+                float2 uv = input.uv;
+                float rad = _Rotation * 3.14159265 / 180.0;
+                float cosA = cos(rad);
+                float sinA = sin(rad);
+                uv -= 0.5;                                      // shift to origin
+                uv = float2(cosA * uv.x - sinA * uv.y,         // rotate
+                            sinA * uv.x + cosA * uv.y);
+                uv += 0.5;                                      // shift back
                 
                 // Sample texture
-                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
+                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
                 half4 color = texColor * _BaseColor;
                 
                 // Apply fog

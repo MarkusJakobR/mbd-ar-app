@@ -50,9 +50,9 @@ public class TilePlacementSystem : MonoBehaviour
         }
 
         // Press R to rotate tiles (for testing)
-        if (Input.GetKeyDown(KeyCode.R) && tilePlane != null)
+        if (Input.GetKey(KeyCode.R) && tilePlane != null)
         {
-            RotateTiles(45f); // Rotate by 45 degrees
+            RotateTiles(90f * Time.deltaTime); // Rotate by 45 degrees
         }
 
     }

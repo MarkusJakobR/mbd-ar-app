@@ -350,14 +350,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   raycastManager: {fileID: 1454090684}
-  planeManager: {fileID: 1454090685}
   tileWidth: 0.6
   tileHeight: 0.6
-  groutWidth: 0.002
   tileColor: {r: 0.9, g: 0.9, b: 0.85, a: 1}
   groutColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
-  enableEditorTesting: 1
-  testPlaneSize: 3
+  cornerMarkerPrefab: {fileID: 0}
+  lineMaterial: {fileID: 0}
+  markerColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  markerSize: 0.05
+  tileClipMaterialReference: {fileID: 0}
 --- !u!4 &490898383
 Transform:
   m_ObjectHideFlags: 0
