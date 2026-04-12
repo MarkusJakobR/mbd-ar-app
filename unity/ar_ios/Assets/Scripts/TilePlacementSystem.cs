@@ -48,20 +48,25 @@ public class TilePlacementSystem : MonoBehaviour
 
     void HandleTouchInput()
     {
-        if (Input.touchCount == 1)
+        if (Application.isMobilePlatform)
         {
-            Touch touch = Input.GetTouch(0);
-
-            if (touch.phase == TouchPhase.Began)
+            if (Input.touchCount == 1)
             {
-                TryPlaceCornerPoint(touch.position);
+                Touch touch = Input.GetTouch(0);
+
+                if (touch.phase == TouchPhase.Began)
+                {
+                    TryPlaceCornerPoint(touch.position);
+                }
             }
         }
-
-        // Mouse for editor
-        if (Input.GetMouseButtonDown(0) && raycastManager != null)
+        else
         {
-            TryPlaceCornerPoint(Input.mousePosition);
+            // Mouse for editor
+            if (Input.GetMouseButtonDown(0) && raycastManager != null)
+            {
+                TryPlaceCornerPoint(Input.mousePosition);
+            }
         }
     }
 
@@ -166,52 +171,202 @@ public class TilePlacementSystem : MonoBehaviour
     void CreateTileArea()
     {
         Debug.Log("=== CREATING TILE AREA ===");
-        Debug.Log($"Corner points count: {cornerPoints.Count}");
 
         List<Vector3> sortedPoints = SortPointsClockwise(cornerPoints);
-
         Bounds bounds = CalculateBounds(sortedPoints);
         Vector3 center = bounds.center;
         Vector2 size = new Vector2(bounds.size.x, bounds.size.z);
 
         Debug.Log($"Bounding box - Center: {center}, Size: {size.x:F2}m x {size.y:F2}m");
 
-        // Create a flat, axis-aligned quad
         tilePlane = new GameObject("TilePlane");
-        tilePlane.transform.position = center;
+        tilePlane.transform.position = Vector3.zero; // Position is baked into vertices
         tilePlane.transform.rotation = Quaternion.identity;
 
         MeshFilter meshFilter = tilePlane.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = tilePlane.AddComponent<MeshRenderer>();
 
-        // Create mesh
-        Mesh mesh = CreateFlatQuad(size);
+        // Create a mesh with only the tiles inside the quad boundary
+        Mesh mesh = CreateClippedTileMesh(bounds, sortedPoints);
         meshFilter.mesh = mesh;
 
-        Debug.Log($"Mesh created - Vertices: {mesh.vertexCount}, Triangles: {mesh.triangles.Length / 3}");
-
-        tileMaterial = CreateTileMaterial(size);
+        tileMaterial = CreateClippedTileMaterial(size, sortedPoints);
         meshRenderer.material = tileMaterial;
 
-        // DEBUG: Check material
-        Debug.Log($"Material created: {tileMaterial.name}");
-        Debug.Log($"Material shader: {tileMaterial.shader.name}");
-        Debug.Log($"Material base texture: {tileMaterial.GetTexture("_BaseMap")}");
-        Debug.Log($"Material tiling: {tileMaterial.mainTextureScale}");
-
-        // DEBUG: Check renderer
-        Debug.Log($"Renderer enabled: {meshRenderer.enabled}");
-        Debug.Log($"Renderer bounds: {meshRenderer.bounds}");
-
-        // tilePlane.transform.position = new Vector3(0, 0.05f, 0);
-        tilePlane.transform.position = center + Vector3.up * 0.001f; // 50cm above center
-
-        Debug.Log($"Final tile plane position: {tilePlane.transform.position}");
-
-        // Calculate tile count
         CalculateAndReportTileCount(size);
 
         Debug.Log("=== TILE AREA CREATION COMPLETE ===");
+    }
+
+    Material CreateClippedTileMaterial(Vector2 areaDimensions, List<Vector3> quadPoints)
+    {
+        // Use the custom shader
+        Shader clipShader = Shader.Find("Custom/TileClipShader");
+
+        if (clipShader == null)
+        {
+            Debug.LogError("TileClipShader not found! Make sure you created the shader file.");
+            clipShader = Shader.Find("Universal Render Pipeline/Lit");
+        }
+
+        Material material = new Material(clipShader);
+        material.name = "ClippedTileMaterial";
+
+        if (tileTexture == null)
+        {
+            tileTexture = CreateTileTexture();
+        }
+
+        material.SetTexture("_BaseMap", tileTexture);
+        material.SetColor("_BaseColor", Color.white);
+
+        // Pass the quad corner points to the shader
+        material.SetVector("_QuadPoint0", quadPoints[0]);
+        material.SetVector("_QuadPoint1", quadPoints[1]);
+        material.SetVector("_QuadPoint2", quadPoints[2]);
+        material.SetVector("_QuadPoint3", quadPoints[3]);
+
+        // Calculate tiling for accurate tile sizes
+        float tilingX = areaDimensions.x / tileWidth;
+        float tilingZ = areaDimensions.y / tileHeight;
+        material.mainTextureScale = new Vector2(tilingX, tilingZ);
+
+        Debug.Log($"Clipped material created with quad boundaries, tiling: {tilingX:F2} x {tilingZ:F2}");
+
+        return material;
+    }
+
+    Mesh CreateClippedTileMesh(Bounds bounds, List<Vector3> quadPoints)
+    {
+        Mesh mesh = new Mesh();
+        mesh.name = "ClippedTileMesh";
+
+        // Calculate how many tiles fit (with extra padding to cover edges)
+        int tilesX = Mathf.CeilToInt(bounds.size.x / tileWidth) + 2; // +2 for padding
+        int tilesZ = Mathf.CeilToInt(bounds.size.z / tileHeight) + 2;
+
+        Debug.Log($"Grid size: {tilesX} x {tilesZ} tiles");
+
+        List<Vector3> vertices = new List<Vector3>();
+        List<Vector2> uvs = new List<Vector2>();
+        List<int> triangles = new List<int>();
+
+        // Start from slightly before the bounds to ensure coverage
+        float startX = bounds.min.x - tileWidth;
+        float startZ = bounds.min.z - tileHeight;
+        float y = bounds.center.y;
+
+        int vertexIndex = 0;
+
+        // Create all tiles, even if they partially overlap the quad
+        for (int ix = 0; ix < tilesX; ix++)
+        {
+            for (int iz = 0; iz < tilesZ; iz++)
+            {
+                float x0 = startX + (ix * tileWidth);
+                float x1 = x0 + tileWidth;
+                float z0 = startZ + (iz * tileHeight);
+                float z1 = z0 + tileHeight;
+
+                // Check if ANY corner of the tile is inside the quad
+                // OR if the tile overlaps the quad boundary
+                Vector3[] tileCorners = new Vector3[]
+                {
+                new Vector3(x0, y, z0),
+                new Vector3(x1, y, z0),
+                new Vector3(x1, y, z1),
+                new Vector3(x0, y, z1)
+                };
+
+                // Check if tile intersects with quad
+                bool includeThisTile = false;
+
+                // Check if any tile corner is inside the quad
+                foreach (var corner in tileCorners)
+                {
+                    if (IsPointInsideQuad(corner, quadPoints))
+                    {
+                        includeThisTile = true;
+                        break;
+                    }
+                }
+
+                // Also check if any quad corner is inside the tile bounds
+                if (!includeThisTile)
+                {
+                    foreach (var quadPoint in quadPoints)
+                    {
+                        if (quadPoint.x >= x0 && quadPoint.x <= x1 &&
+                            quadPoint.z >= z0 && quadPoint.z <= z1)
+                        {
+                            includeThisTile = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (includeThisTile)
+                {
+                    // Add this tile
+                    vertices.Add(new Vector3(x0, y, z0));
+                    vertices.Add(new Vector3(x1, y, z0));
+                    vertices.Add(new Vector3(x1, y, z1));
+                    vertices.Add(new Vector3(x0, y, z1));
+
+                    uvs.Add(new Vector2(0, 0));
+                    uvs.Add(new Vector2(1, 0));
+                    uvs.Add(new Vector2(1, 1));
+                    uvs.Add(new Vector2(0, 1));
+
+                    triangles.Add(vertexIndex + 0);
+                    triangles.Add(vertexIndex + 1);
+                    triangles.Add(vertexIndex + 2);
+
+                    triangles.Add(vertexIndex + 0);
+                    triangles.Add(vertexIndex + 2);
+                    triangles.Add(vertexIndex + 3);
+
+                    vertexIndex += 4;
+                }
+            }
+        }
+
+        mesh.vertices = vertices.ToArray();
+        mesh.uv = uvs.ToArray();
+        mesh.triangles = triangles.ToArray();
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
+        Debug.Log($"Created mesh with {vertices.Count / 4} tiles");
+
+        return mesh;
+    }
+
+    bool IsPointInsideQuad(Vector3 point, List<Vector3> quadPoints)
+    {
+        // Use ray casting algorithm for point-in-polygon test (in XZ plane)
+        Vector2 p = new Vector2(point.x, point.z);
+        Vector2[] poly = new Vector2[4]
+        {
+        new Vector2(quadPoints[0].x, quadPoints[0].z),
+        new Vector2(quadPoints[1].x, quadPoints[1].z),
+        new Vector2(quadPoints[2].x, quadPoints[2].z),
+        new Vector2(quadPoints[3].x, quadPoints[3].z)
+        };
+
+        bool inside = false;
+        int j = 3;
+
+        for (int i = 0; i < 4; j = i++)
+        {
+            if (((poly[i].y > p.y) != (poly[j].y > p.y)) &&
+                (p.x < (poly[j].x - poly[i].x) * (p.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x))
+            {
+                inside = !inside;
+            }
+        }
+
+        return inside;
     }
 
     Bounds CalculateBounds(List<Vector3> points)
@@ -229,45 +384,6 @@ public class TilePlacementSystem : MonoBehaviour
         Vector3 size = max - min;
 
         return new Bounds(center, size);
-    }
-
-    Mesh CreateFlatQuad(Vector2 size)
-    {
-        Mesh mesh = new Mesh();
-
-        float halfWidth = size.x / 2f;
-        float halfHeight = size.y / 2f;
-
-        // Simple rectangle vertices
-        Vector3[] vertices = new Vector3[]
-        {
-        new Vector3(-halfWidth, 0, -halfHeight),
-        new Vector3(halfWidth, 0, -halfHeight),
-        new Vector3(halfWidth, 0, halfHeight),
-        new Vector3(-halfWidth, 0, halfHeight)
-        };
-
-        Vector2[] uvs = new Vector2[]
-        {
-        new Vector2(0, 0),
-        new Vector2(1, 0),
-        new Vector2(1, 1),
-        new Vector2(0, 1)
-        };
-
-        int[] triangles = new int[]
-        {
-        0, 1, 2,
-        0, 2, 3
-        };
-
-        mesh.vertices = vertices;
-        mesh.uv = uvs;
-        mesh.triangles = triangles;
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-
-        return mesh;
     }
 
     List<Vector3> SortPointsClockwise(List<Vector3> points)
@@ -295,88 +411,6 @@ public class TilePlacementSystem : MonoBehaviour
         }
 
         return sorted;
-    }
-
-    Mesh CreateQuadMeshFromPoints(List<Vector3> points)
-    {
-        Mesh mesh = new Mesh();
-
-        // Use the 4 corner points as vertices
-        Vector3[] vertices = new Vector3[4]
-        {
-            points[0],
-            points[1],
-            points[2],
-            points[3]
-        };
-
-        // Calculate UVs based on world positions
-        Vector2[] uvs = CalculateUVs(points);
-
-        // Triangles (two triangles make a quad)
-        int[] triangles = new int[6]
-        {
-            0, 2, 1,  // First triangle
-            0, 3, 2   // Second triangle
-        };
-
-        mesh.vertices = vertices;
-        mesh.uv = uvs;
-        mesh.triangles = triangles;
-        mesh.RecalculateNormals();
-
-        return mesh;
-    }
-
-    Vector2[] CalculateUVs(List<Vector3> points)
-    {
-        // Calculate the bounding rectangle to map UVs properly
-        Vector2[] uvs = new Vector2[4];
-
-        // Simple UV mapping: corners map to 0,0  1,0  1,1  0,1
-        uvs[0] = new Vector2(0, 0);
-        uvs[1] = new Vector2(1, 0);
-        uvs[2] = new Vector2(1, 1);
-        uvs[3] = new Vector2(0, 1);
-
-        return uvs;
-    }
-
-    Vector2 CalculateAreaDimensions(List<Vector3> points)
-    {
-        // Calculate width and height from the points
-        float width = Vector3.Distance(points[0], points[1]);
-        float height = Vector3.Distance(points[1], points[2]);
-
-        return new Vector2(width, height);
-    }
-
-    Material CreateTileMaterial(Vector2 areaDimensions)
-    {
-        Debug.Log($"Creating tile material for area: {areaDimensions.x:F2}m x {areaDimensions.y:F2}m");
-
-        Material material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-
-        material.SetFloat("_Cull", 0); // 0 = Off (double-sided), 1 = Front, 2 = Back
-        material.doubleSidedGI = true;
-
-        if (tileTexture == null)
-        {
-            tileTexture = CreateTileTexture();
-            Debug.Log($"Tile texture created: {tileTexture.width}x{tileTexture.height}");
-        }
-
-        material.SetTexture("_BaseMap", tileTexture);
-        material.SetColor("_BaseColor", Color.white); // Full brightness
-
-        // Calculate tiling
-        float tilingX = areaDimensions.x / tileWidth;
-        float tilingZ = areaDimensions.y / tileHeight;
-        material.mainTextureScale = new Vector2(tilingX, tilingZ);
-
-        Debug.Log($"Tile material created: {tilingX:F1} x {tilingZ:F1} tiles");
-
-        return material;
     }
 
     Texture2D CreateTileTexture()
@@ -446,7 +480,6 @@ public class TilePlacementSystem : MonoBehaviour
         }
         boundaryLines.Clear();
 
-        // Destroy tile quad
         if (tilePlane != null)
         {
             Destroy(tilePlane);
