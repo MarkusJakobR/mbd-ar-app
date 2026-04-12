@@ -209,6 +209,9 @@ public class TilePlacementSystem : MonoBehaviour
             clipShader = Shader.Find("Universal Render Pipeline/Lit");
         }
 
+        Debug.Log($"Shader found: {clipShader.name}");
+        Debug.Log($"Shader supported: {clipShader.isSupported}");
+
         Material material = new Material(clipShader);
         material.name = "ClippedTileMaterial";
 
@@ -225,6 +228,8 @@ public class TilePlacementSystem : MonoBehaviour
         material.SetVector("_QuadPoint1", quadPoints[1]);
         material.SetVector("_QuadPoint2", quadPoints[2]);
         material.SetVector("_QuadPoint3", quadPoints[3]);
+
+        Debug.Log($"Quad points set: {quadPoints[0]}, {quadPoints[1]}, {quadPoints[2]}, {quadPoints[3]}");
 
         // Calculate tiling for accurate tile sizes
         float tilingX = areaDimensions.x / tileWidth;
