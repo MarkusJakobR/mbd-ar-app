@@ -5,15 +5,24 @@ using System.Collections;
 using UnityEngine.XR.ARFoundation;
 using FlutterUnityIntegration;
 
+public enum ARMode
+{
+    Furniture,
+    Tile
+}
 public class ARManager : MonoBehaviour
 {
+    private static ARManager _instance;
+
     [SerializeField] private ARPlaceFurniture placeFurniture;
+    [SerializeField] private TilePlacementSystem tilePlacementSystem;
     [SerializeField] private bool useLocalPrefabForTesting = true;
     [SerializeField] private string editorTestKey = "brown_cabinet";
 
     private bool isInitialized = false;
     private ARObjectSelector _selector;
     private UnityMessageManager _messageManager;
+    private ARMode currentMode = ARMode.Furniture;
 
     void Start()
     {
@@ -36,6 +45,50 @@ public class ARManager : MonoBehaviour
             StartCoroutine(InitializeAddressables());
         else
             StartCamera();
+    }
+
+    // Mode switching
+    public void SetMode(ARMode mode)
+    {
+        currentMode = mode;
+
+        switch (mode)
+        {
+            case ARMode.Furniture:
+                // Enable furniture system
+                if (placeFurniture != null)
+                    placeFurniture.enabled = true;
+
+                // Disable tile system
+                if (tilePlacementSystem != null)
+                {
+                    tilePlacementSystem.ClearAll();
+                    tilePlacementSystem.enabled = false;
+                }
+
+                Debug.Log("Switched to Furniture mode");
+                SendToFlutter("ModeChanged:Furniture");
+                break;
+
+            case ARMode.Tile:
+                // Disable furniture system
+                if (placeFurniture != null)
+                {
+                    placeFurniture.enabled = false;
+                }
+
+                // Deselect any selected furniture
+                if (_selector != null && _selector.HasSelection)
+                    _selector.Deselect();
+
+                // Enable tile system
+                if (tilePlacementSystem != null)
+                    tilePlacementSystem.enabled = true;
+
+                Debug.Log("Switched to Tile mode");
+                SendToFlutter("ModeChanged:Tile");
+                break;
+        }
     }
 
     private void SendToFlutter(string message)
@@ -74,6 +127,26 @@ public class ARManager : MonoBehaviour
         isInitialized = true;
 
         SendToFlutter("OnUnityReady");
+    }
+
+    public void OnTileSelected(string jsonMessage)
+    {
+        Debug.Log("OnTileSelected called from Flutter");
+        SetMode(ARMode.Tile);
+
+        var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
+        Debug.Log($"Tile selected: {data.name}");
+
+        if (tilePlacementSystem != null)
+        {
+            tilePlacementSystem.enabled = true;
+            // You can pass tile dimensions here if needed
+            // tilePlacementSystem.SetTileDimensions(data.width, data.height);
+        }
+        else
+        {
+            Debug.LogError("TilePlacementSystem is null!");
+        }
     }
 
     public void OnProductSelected(string jsonMessage)
@@ -228,26 +301,24 @@ public class ARManager : MonoBehaviour
         SendToFlutter($"TileCount:{count}|{tileName}");
     }
 
-    public void OnTileSelected(string jsonMessage)
+    // Flutter button receivers
+    public void SwitchToFurnitureMode(string message)
     {
-        SetMode(ARMode.Tile);
-
-        var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
-        Debug.Log($"Tile selected: {data.name}");
-
-        if (tilePlacementSystem != null)
-        {
-            // Create TileData from product message
-            // You'll need to implement this based on your tile data structure
-            tilePlacementSystem.enabled = true;
-        }
+        Debug.Log("ARManager: Switching to Furniture mode from Flutter");
+        SetMode(ARMode.Furniture);
     }
 
-    public void ClearTiles(string message)
+    public void SwitchToTileMode(string message)
+    {
+        Debug.Log("ARManager: Switching to Tile mode from Flutter");
+        SetMode(ARMode.Tile);
+    }
+
+    public void ClearAll(string message)
     {
         if (tilePlacementSystem != null)
         {
-            tilePlacementSystem.ClearTiles();
+            tilePlacementSystem.ClearAll();
         }
     }
 
@@ -269,6 +340,35 @@ public class ARManager : MonoBehaviour
                 });
                 OnProductSelected(fakeMessage);
             }
+        }
+
+        // Press M to toggle between Furniture and Tile mode
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            if (currentMode == ARMode.Furniture)
+            {
+                Debug.Log("Switching to Tile Mode (Editor Test)");
+                SetMode(ARMode.Tile);
+            }
+            else
+            {
+                Debug.Log("Switching to Furniture Mode (Editor Test)");
+                SetMode(ARMode.Furniture);
+            }
+        }
+
+        // Press F to force Furniture mode
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            Debug.Log("Force Furniture Mode");
+            SetMode(ARMode.Furniture);
+        }
+
+        // Press G to force Tile mode  
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            Debug.Log("Force Tile Mode");
+            SetMode(ARMode.Tile);
         }
     }
 

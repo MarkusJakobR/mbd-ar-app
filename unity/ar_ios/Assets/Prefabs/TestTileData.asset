@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd0bb696f65444d0e9b4a3c29f213cea, type: 3}
+  m_Name: TestTileData
+  m_EditorClassIdentifier: 
+  tileName: 60x60 Ceramic Tile
+  productId: tile_001
+  tileMaterial: {fileID: 2100000, guid: 66198098c0c17482e98003dfe5139cad, type: 2}
+  width: 0.6
+  height: 0.6
+  thickness: 0.01
+  groutWidth: 0.002
+  groutColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

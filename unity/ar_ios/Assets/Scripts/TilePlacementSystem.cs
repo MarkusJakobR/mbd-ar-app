@@ -2,257 +2,481 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using System.Collections.Generic;
+using System.Linq;
 
 public class TilePlacementSystem : MonoBehaviour
 {
+    [Header("AR Components")]
     [SerializeField] private ARRaycastManager raycastManager;
-    [SerializeField] private ARPlaneManager planeManager;
-    [SerializeField] private TileData currentTileData;
-    [SerializeField] private GameObject tilePrefab; // Single tile prefab
-    [SerializeField] private Material groutMaterial;
-    
-    private ARPlane selectedPlane;
-    private GameObject tileGrid;
-    private List<GameObject> spawnedTiles = new List<GameObject>();
-    private int totalTileCount = 0;
-    
+
+    [Header("Tile Settings")]
+    [SerializeField] private float tileWidth = 0.6f;
+    [SerializeField] private float tileHeight = 0.6f;
+    [SerializeField] private Color tileColor = new Color(0.9f, 0.9f, 0.85f);
+    [SerializeField] private Color groutColor = new Color(0.6f, 0.6f, 0.6f);
+
+    [Header("Visual Settings")]
+    [SerializeField] private GameObject cornerMarkerPrefab; // Small sphere
+    [SerializeField] private Material lineMaterial; // For boundary lines
+    [SerializeField] private Color markerColor = Color.yellow;
+    [SerializeField] private float markerSize = 0.05f; // 5cm sphere
+
+    private List<Vector3> cornerPoints = new List<Vector3>(); // World positions
+    private List<GameObject> cornerMarkers = new List<GameObject>();
+    private List<LineRenderer> boundaryLines = new List<LineRenderer>();
+    private GameObject tilePlane;
+    private Material tileMaterial;
+    private Texture2D tileTexture;
+
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
     void Update()
     {
-        HandlePlaneSelection();
+        HandleTouchInput();
+
+        // Editor testing: Press T to add test points
+        if (Application.isEditor && Input.GetKeyDown(KeyCode.T))
+        {
+            AddTestPoint();
+        }
+
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            ClearAll();
+        }
     }
 
-    void HandlePlaneSelection()
+    void HandleTouchInput()
     {
-        if (Input.touchCount > 0)
+        if (Input.touchCount == 1)
         {
             Touch touch = Input.GetTouch(0);
+
             if (touch.phase == TouchPhase.Began)
             {
-                if (raycastManager.Raycast(touch.position, rayHits, TrackableType.PlaneWithinPolygon))
-                {
-                    var hitPlane = planeManager.GetPlane(rayHits[0].trackableId);
-                    if (hitPlane != null && IsHorizontalPlane(hitPlane))
-                    {
-                        SelectPlane(hitPlane);
-                    }
-                }
+                TryPlaceCornerPoint(touch.position);
             }
         }
-        
-        // Mouse fallback for editor
-        if (Input.GetMouseButtonDown(0))
+
+        // Mouse for editor
+        if (Input.GetMouseButtonDown(0) && raycastManager != null)
         {
-            if (raycastManager.Raycast(Input.mousePosition, rayHits, TrackableType.PlaneWithinPolygon))
-            {
-                var hitPlane = planeManager.GetPlane(rayHits[0].trackableId);
-                if (hitPlane != null && IsHorizontalPlane(hitPlane))
-                {
-                    SelectPlane(hitPlane);
-                }
-            }
+            TryPlaceCornerPoint(Input.mousePosition);
         }
     }
 
-    bool IsHorizontalPlane(ARPlane plane)
+    void TryPlaceCornerPoint(Vector2 screenPosition)
     {
-        return plane.alignment == PlaneAlignment.HorizontalUp || 
-               plane.alignment == PlaneAlignment.HorizontalDown;
-    }
-
-    void SelectPlane(ARPlane plane)
-    {
-        if (selectedPlane == plane && tileGrid != null) return; // Already selected
-        
-        ClearTiles();
-        selectedPlane = plane;
-        GenerateTileGrid(plane);
-    }
-
-    void GenerateTileGrid(ARPlane plane)
-    {
-        if (currentTileData == null)
+        if (raycastManager == null)
         {
-            Debug.LogError("No tile data assigned!");
+            Debug.LogWarning("AR Raycast Manager not assigned");
             return;
         }
 
-        tileGrid = new GameObject($"TileGrid_{plane.trackableId}");
-        tileGrid.transform.position = plane.center;
-        tileGrid.transform.rotation = plane.transform.rotation;
-
-        // Get plane boundary points
-        Vector2[] boundary = GetPlaneBoundary(plane);
-        if (boundary.Length == 0)
+        // Already have 4 points, can't add more
+        if (cornerPoints.Count >= 4)
         {
-            Debug.LogWarning("Plane has no boundary");
+            Debug.Log("Already have 4 corners. Press Reset to start over.");
             return;
         }
 
-        // Calculate bounding box
-        Bounds bounds = CalculateBounds(boundary);
-        
-        // Calculate tile dimensions including grout
-        float tileWidth = currentTileData.width + currentTileData.groutWidth;
-        float tileHeight = currentTileData.height + currentTileData.groutWidth;
-
-        // Calculate grid dimensions
-        int tilesX = Mathf.CeilToInt(bounds.size.x / tileWidth);
-        int tilesZ = Mathf.CeilToInt(bounds.size.y / tileHeight);
-
-        totalTileCount = 0;
-
-        // Generate tiles
-        for (int x = 0; x < tilesX; x++)
+        // Raycast to find floor
+        if (raycastManager.Raycast(screenPosition, rayHits, TrackableType.PlaneWithinPolygon))
         {
-            for (int z = 0; z < tilesZ; z++)
-            {
-                Vector2 tilePos2D = new Vector2(
-                    bounds.min.x + (x * tileWidth) + (tileWidth / 2),
-                    bounds.min.y + (z * tileHeight) + (tileHeight / 2)
-                );
+            Vector3 hitPosition = rayHits[0].pose.position;
+            AddCornerPoint(hitPosition);
+        }
+    }
 
-                // Check if tile center is within plane boundary
-                if (IsPointInPolygon(tilePos2D, boundary))
+    void AddCornerPoint(Vector3 worldPosition)
+    {
+        cornerPoints.Add(worldPosition);
+
+        // Create visual marker
+        GameObject marker = CreateCornerMarker(worldPosition);
+        cornerMarkers.Add(marker);
+
+        Debug.Log($"Added corner point {cornerPoints.Count}: {worldPosition}");
+
+        // Draw boundary line from previous point
+        if (cornerPoints.Count > 1)
+        {
+            DrawBoundaryLine(cornerPoints[cornerPoints.Count - 2], worldPosition);
+        }
+
+        // If we have 4 points, close the shape and create tiles
+        if (cornerPoints.Count == 4)
+        {
+            // Close the rectangle by connecting point 4 back to point 1
+            DrawBoundaryLine(cornerPoints[3], cornerPoints[0]);
+            CreateTileArea();
+        }
+    }
+
+    GameObject CreateCornerMarker(Vector3 position)
+    {
+        GameObject marker;
+
+        if (cornerMarkerPrefab != null)
+        {
+            marker = Instantiate(cornerMarkerPrefab, position, Quaternion.identity);
+        }
+        else
+        {
+            // Create a simple sphere
+            marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            marker.transform.position = position;
+            marker.transform.localScale = Vector3.one * markerSize;
+
+            var renderer = marker.GetComponent<Renderer>();
+            renderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            renderer.material.color = markerColor;
+        }
+
+        marker.name = $"CornerMarker_{cornerPoints.Count}";
+        return marker;
+    }
+
+    void DrawBoundaryLine(Vector3 start, Vector3 end)
+    {
+        GameObject lineObj = new GameObject($"BoundaryLine_{boundaryLines.Count}");
+        LineRenderer line = lineObj.AddComponent<LineRenderer>();
+
+        // Configure line
+        line.startWidth = 0.01f; // 1cm thick line
+        line.endWidth = 0.01f;
+        line.positionCount = 2;
+        line.SetPosition(0, start + Vector3.up * 0.005f); // Slightly above floor
+        line.SetPosition(1, end + Vector3.up * 0.005f);
+
+        // Material
+        if (lineMaterial != null)
+        {
+            line.material = lineMaterial;
+        }
+        else
+        {
+            line.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            line.material.color = markerColor;
+        }
+
+        boundaryLines.Add(line);
+    }
+
+    void CreateTileArea()
+    {
+        Debug.Log("=== CREATING TILE AREA ===");
+        Debug.Log($"Corner points count: {cornerPoints.Count}");
+
+        List<Vector3> sortedPoints = SortPointsClockwise(cornerPoints);
+
+        Bounds bounds = CalculateBounds(sortedPoints);
+        Vector3 center = bounds.center;
+        Vector2 size = new Vector2(bounds.size.x, bounds.size.z);
+
+        Debug.Log($"Bounding box - Center: {center}, Size: {size.x:F2}m x {size.y:F2}m");
+
+        // Create a flat, axis-aligned quad
+        tilePlane = new GameObject("TilePlane");
+        tilePlane.transform.position = center;
+        tilePlane.transform.rotation = Quaternion.identity;
+
+        MeshFilter meshFilter = tilePlane.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer = tilePlane.AddComponent<MeshRenderer>();
+
+        // Create mesh
+        Mesh mesh = CreateFlatQuad(size);
+        meshFilter.mesh = mesh;
+
+        Debug.Log($"Mesh created - Vertices: {mesh.vertexCount}, Triangles: {mesh.triangles.Length / 3}");
+
+        tileMaterial = CreateTileMaterial(size);
+        meshRenderer.material = tileMaterial;
+
+        // DEBUG: Check material
+        Debug.Log($"Material created: {tileMaterial.name}");
+        Debug.Log($"Material shader: {tileMaterial.shader.name}");
+        Debug.Log($"Material base texture: {tileMaterial.GetTexture("_BaseMap")}");
+        Debug.Log($"Material tiling: {tileMaterial.mainTextureScale}");
+
+        // DEBUG: Check renderer
+        Debug.Log($"Renderer enabled: {meshRenderer.enabled}");
+        Debug.Log($"Renderer bounds: {meshRenderer.bounds}");
+
+        // tilePlane.transform.position = new Vector3(0, 0.05f, 0);
+        tilePlane.transform.position = center + Vector3.up * 0.001f; // 50cm above center
+
+        Debug.Log($"Final tile plane position: {tilePlane.transform.position}");
+
+        // Calculate tile count
+        CalculateAndReportTileCount(size);
+
+        Debug.Log("=== TILE AREA CREATION COMPLETE ===");
+    }
+
+    Bounds CalculateBounds(List<Vector3> points)
+    {
+        Vector3 min = points[0];
+        Vector3 max = points[0];
+
+        foreach (var p in points)
+        {
+            min = Vector3.Min(min, p);
+            max = Vector3.Max(max, p);
+        }
+
+        Vector3 center = (min + max) / 2f;
+        Vector3 size = max - min;
+
+        return new Bounds(center, size);
+    }
+
+    Mesh CreateFlatQuad(Vector2 size)
+    {
+        Mesh mesh = new Mesh();
+
+        float halfWidth = size.x / 2f;
+        float halfHeight = size.y / 2f;
+
+        // Simple rectangle vertices
+        Vector3[] vertices = new Vector3[]
+        {
+        new Vector3(-halfWidth, 0, -halfHeight),
+        new Vector3(halfWidth, 0, -halfHeight),
+        new Vector3(halfWidth, 0, halfHeight),
+        new Vector3(-halfWidth, 0, halfHeight)
+        };
+
+        Vector2[] uvs = new Vector2[]
+        {
+        new Vector2(0, 0),
+        new Vector2(1, 0),
+        new Vector2(1, 1),
+        new Vector2(0, 1)
+        };
+
+        int[] triangles = new int[]
+        {
+        0, 1, 2,
+        0, 2, 3
+        };
+
+        mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
+        return mesh;
+    }
+
+    List<Vector3> SortPointsClockwise(List<Vector3> points)
+    {
+        // Step 1: Find the center point (centroid)
+        Vector3 center = Vector3.zero;
+        foreach (var p in points)
+        {
+            center += p;
+        }
+        center /= points.Count;
+
+        // Step 2: Sort points by angle around the center
+        var sorted = points.OrderBy(p =>
+        {
+            // Calculate angle from center to point (in the XZ plane, since Y is up)
+            Vector3 direction = p - center;
+            return Mathf.Atan2(direction.z, direction.x);
+        }).ToList();
+
+        Debug.Log("Points sorted in clockwise order:");
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            Debug.Log($"  Point {i}: {sorted[i]}");
+        }
+
+        return sorted;
+    }
+
+    Mesh CreateQuadMeshFromPoints(List<Vector3> points)
+    {
+        Mesh mesh = new Mesh();
+
+        // Use the 4 corner points as vertices
+        Vector3[] vertices = new Vector3[4]
+        {
+            points[0],
+            points[1],
+            points[2],
+            points[3]
+        };
+
+        // Calculate UVs based on world positions
+        Vector2[] uvs = CalculateUVs(points);
+
+        // Triangles (two triangles make a quad)
+        int[] triangles = new int[6]
+        {
+            0, 2, 1,  // First triangle
+            0, 3, 2   // Second triangle
+        };
+
+        mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        return mesh;
+    }
+
+    Vector2[] CalculateUVs(List<Vector3> points)
+    {
+        // Calculate the bounding rectangle to map UVs properly
+        Vector2[] uvs = new Vector2[4];
+
+        // Simple UV mapping: corners map to 0,0  1,0  1,1  0,1
+        uvs[0] = new Vector2(0, 0);
+        uvs[1] = new Vector2(1, 0);
+        uvs[2] = new Vector2(1, 1);
+        uvs[3] = new Vector2(0, 1);
+
+        return uvs;
+    }
+
+    Vector2 CalculateAreaDimensions(List<Vector3> points)
+    {
+        // Calculate width and height from the points
+        float width = Vector3.Distance(points[0], points[1]);
+        float height = Vector3.Distance(points[1], points[2]);
+
+        return new Vector2(width, height);
+    }
+
+    Material CreateTileMaterial(Vector2 areaDimensions)
+    {
+        Debug.Log($"Creating tile material for area: {areaDimensions.x:F2}m x {areaDimensions.y:F2}m");
+
+        Material material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+
+        material.SetFloat("_Cull", 0); // 0 = Off (double-sided), 1 = Front, 2 = Back
+        material.doubleSidedGI = true;
+
+        if (tileTexture == null)
+        {
+            tileTexture = CreateTileTexture();
+            Debug.Log($"Tile texture created: {tileTexture.width}x{tileTexture.height}");
+        }
+
+        material.SetTexture("_BaseMap", tileTexture);
+        material.SetColor("_BaseColor", Color.white); // Full brightness
+
+        // Calculate tiling
+        float tilingX = areaDimensions.x / tileWidth;
+        float tilingZ = areaDimensions.y / tileHeight;
+        material.mainTextureScale = new Vector2(tilingX, tilingZ);
+
+        Debug.Log($"Tile material created: {tilingX:F1} x {tilingZ:F1} tiles");
+
+        return material;
+    }
+
+    Texture2D CreateTileTexture()
+    {
+        Debug.Log("Creating tile texture...");
+
+        int texSize = 128;
+        Texture2D tex = new Texture2D(texSize, texSize);
+
+        int groutPixels = 2;
+
+        for (int y = 0; y < texSize; y++)
+        {
+            for (int x = 0; x < texSize; x++)
+            {
+                if (x < groutPixels || y < groutPixels)
                 {
-                    CreateTile(tilePos2D, x, z);
-                    totalTileCount++;
+                    tex.SetPixel(x, y, groutColor);
+                }
+                else
+                {
+                    tex.SetPixel(x, y, tileColor);
                 }
             }
         }
 
-        Debug.Log($"Generated {totalTileCount} tiles on plane {plane.trackableId}");
-        
-        // Notify Flutter about tile count
-        NotifyTileCount(totalTileCount);
+        tex.Apply();
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Repeat;
+
+        Debug.Log("Tile texture created and applied");
+
+        return tex;
     }
 
-    void CreateTile(Vector2 position2D, int gridX, int gridZ)
+    void CalculateAndReportTileCount(Vector2 areaDimensions)
     {
-        Vector3 worldPos = tileGrid.transform.TransformPoint(new Vector3(position2D.x, 0.001f, position2D.y));
-        
-        GameObject tile = Instantiate(tilePrefab, worldPos, tileGrid.transform.rotation, tileGrid.transform);
-        tile.name = $"Tile_{gridX}_{gridZ}";
-        
-        // Set tile scale to match real dimensions
-        tile.transform.localScale = new Vector3(
-            currentTileData.width,
-            currentTileData.thickness,
-            currentTileData.height
-        );
+        int tilesX = Mathf.RoundToInt(areaDimensions.x / tileWidth);
+        int tilesZ = Mathf.RoundToInt(areaDimensions.y / tileHeight);
+        int totalTiles = tilesX * tilesZ;
 
-        // Apply material
-        var renderer = tile.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material = currentTileData.tileMaterial;
-        }
+        float totalArea = areaDimensions.x * areaDimensions.y;
 
-        spawnedTiles.Add(tile);
-    }
+        Debug.Log($"Area: {areaDimensions.x:F2}m x {areaDimensions.y:F2}m = {totalArea:F2}m²");
+        Debug.Log($"Tiles: {tilesX} x {tilesZ} = {totalTiles} tiles");
 
-    Vector2[] GetPlaneBoundary(ARPlane plane)
-    {
-        if (plane.boundary.Length == 0)
-        {
-            // Fallback: create rectangular boundary from plane size
-            float halfWidth = plane.size.x / 2;
-            float halfHeight = plane.size.y / 2;
-            return new Vector2[]
-            {
-                new Vector2(-halfWidth, -halfHeight),
-                new Vector2(halfWidth, -halfHeight),
-                new Vector2(halfWidth, halfHeight),
-                new Vector2(-halfWidth, halfHeight)
-            };
-        }
-
-        Vector2[] boundary = new Vector2[plane.boundary.Length];
-        for (int i = 0; i < plane.boundary.Length; i++)
-        {
-            boundary[i] = plane.boundary[i];
-        }
-        return boundary;
-    }
-
-    Bounds CalculateBounds(Vector2[] points)
-    {
-        Vector2 min = points[0];
-        Vector2 max = points[0];
-
-        foreach (var point in points)
-        {
-            min = Vector2.Min(min, point);
-            max = Vector2.Max(max, point);
-        }
-
-        Vector2 center = (min + max) / 2;
-        Vector2 size = max - min;
-        
-        return new Bounds(new Vector3(center.x, 0, center.y), new Vector3(size.x, 0, size.y));
-    }
-
-    // Ray casting algorithm for point-in-polygon test
-    bool IsPointInPolygon(Vector2 point, Vector2[] polygon)
-    {
-        bool inside = false;
-        int j = polygon.Length - 1;
-        
-        for (int i = 0; i < polygon.Length; j = i++)
-        {
-            if (((polygon[i].y > point.y) != (polygon[j].y > point.y)) &&
-                (point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / 
-                (polygon[j].y - polygon[i].y) + polygon[i].x))
-            {
-                inside = !inside;
-            }
-        }
-        
-        return inside;
-    }
-
-    public void ClearTiles()
-    {
-        foreach (var tile in spawnedTiles)
-        {
-            if (tile != null) Destroy(tile);
-        }
-        spawnedTiles.Clear();
-        
-        if (tileGrid != null)
-        {
-            Destroy(tileGrid);
-            tileGrid = null;
-        }
-        
-        selectedPlane = null;
-        totalTileCount = 0;
-    }
-
-    public void SetTileData(TileData newTileData)
-    {
-        currentTileData = newTileData;
-        
-        // Regenerate if plane already selected
-        if (selectedPlane != null)
-        {
-            ClearTiles();
-            GenerateTileGrid(selectedPlane);
-        }
-    }
-
-    void NotifyTileCount(int count)
-    {
-        // Send to Flutter
         var arManager = FindObjectOfType<ARManager>();
-        arManager?.NotifyTileCount(count, currentTileData?.tileName ?? "Unknown");
+        arManager?.NotifyTileCount(totalTiles, $"{tileWidth}x{tileHeight}m");
     }
 
-    public int GetTileCount() => totalTileCount;
-    
-    public float GetTotalArea()
+    public void ClearAll()
     {
-        return totalTileCount * (currentTileData.width * currentTileData.height);
+        // Clear corner points
+        cornerPoints.Clear();
+
+        // Destroy markers
+        foreach (var marker in cornerMarkers)
+        {
+            if (marker != null) Destroy(marker);
+        }
+        cornerMarkers.Clear();
+
+        // Destroy boundary lines
+        foreach (var line in boundaryLines)
+        {
+            if (line != null) Destroy(line.gameObject);
+        }
+        boundaryLines.Clear();
+
+        // Destroy tile quad
+        if (tilePlane != null)
+        {
+            Destroy(tilePlane);
+            tilePlane = null;
+        }
+
+        if (tileMaterial != null)
+        {
+            Destroy(tileMaterial);
+            tileMaterial = null;
+        }
+
+        Debug.Log("All points and tiles cleared");
+    }
+
+    // Editor testing
+    void AddTestPoint()
+    {
+        // Add test points in a square pattern
+        Vector3[] testPoints = new Vector3[]
+        {
+            new Vector3(0, 0, 0),
+            new Vector3(2, 0, 0),
+            new Vector3(2, 0, 2),
+            new Vector3(0, 0, 2.5f)
+        };
+
+        if (cornerPoints.Count < 4)
+        {
+            AddCornerPoint(testPoints[cornerPoints.Count]);
+        }
     }
 }

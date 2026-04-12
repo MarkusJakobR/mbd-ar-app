@@ -139,10 +139,10 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
             onPressed: _onBack,
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
+            _buildIconButton(
+              icon: Icons.refresh,
               onTap: () {
-                _post('ClearTiles');
+                _post('ClearAll');
                 setState(() {
                   _tileCount = 0;
                   _totalArea = 0.0;
@@ -150,8 +150,8 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               },
               tooltip: 'Clear tiles',
             ),
-            IconButton(
-              icon: const Icon(Icons.help_outline),
+            _buildIconButton(
+              icon: Icons.help_outline,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -307,6 +307,48 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isActive = false,
+    Color? color,
+    String? tooltip,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: _buttonContainer(
+          isActive: isActive,
+          child: Icon(
+            icon,
+            color: color ?? (isActive ? Colors.white : Colors.black87),
+            size: 22,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buttonContainer({required Widget child, bool isActive = false}) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFF2C2A6D) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(child: child),
     );
   }
 }
