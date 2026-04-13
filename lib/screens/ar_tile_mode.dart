@@ -16,8 +16,8 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   UnityWidgetController? _unityController;
   bool _unityReady = false;
   int _tileCount = 0;
+  int _pointCount = 0;
   double _totalArea = 0.0;
-  String? _selectedPlaneId;
 
   @override
   void initState() {
@@ -217,7 +217,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               ),
 
             // Tile mode instruction overlay
-            if (_unityReady && _tileCount == 0)
+            if (_unityReady && _pointCount == 0)
               Positioned(
                 top: 100,
                 left: 0,
@@ -240,23 +240,25 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-            Positioned(
-              bottom: 100,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildIconButton(
-                      icon: Icons.camera_alt_outlined,
-                      onTap: () => _post("ConfirmCrosshairPoint"),
-                      tooltip: "Click to add point",
-                    ),
-                  ],
+            if (_unityReady && _tileCount == 0)
+              Positioned(
+                bottom: 100,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildCaptureButton(
+                        onTap: () => {
+                          _post("ConfirmCrosshairPoint"),
+                          _pointCount += 1,
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
             // Tile count display
             if (_unityReady && _tileCount > 0)
@@ -371,6 +373,30 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
             icon,
             color: color ?? (isActive ? Colors.white : Colors.black87),
             size: 22,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCaptureButton({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 70,
+        height: 70,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 3),
+          color: Colors.transparent,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Container(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
           ),
         ),
       ),

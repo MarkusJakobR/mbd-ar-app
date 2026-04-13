@@ -53,6 +53,9 @@ public class TilePlacementSystem : MonoBehaviour
 
     void Start()
     {
+        var uiManager = FindObjectOfType<ARUIManager>();
+
+        uiManager?.ShowTapToPlaceHint(false);
         CreateCrosshair();
     }
 
@@ -158,6 +161,7 @@ public class TilePlacementSystem : MonoBehaviour
         }
     }
 
+    // remove this function later
     void HandleTouchInput()
     {
         if (Application.isMobilePlatform)
@@ -168,7 +172,7 @@ public class TilePlacementSystem : MonoBehaviour
 
                 if (touch.phase == TouchPhase.Began)
                 {
-                    TryPlaceCornerPoint(touch.position);
+                    // TryPlaceCornerPoint(touch.position);
                 }
             }
         }
