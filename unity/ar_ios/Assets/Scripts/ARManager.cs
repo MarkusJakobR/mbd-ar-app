@@ -4,6 +4,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using System.Collections;
 using UnityEngine.XR.ARFoundation;
 using FlutterUnityIntegration;
+using UnityEngine.Networking;
 
 public enum ARMode
 {
@@ -143,13 +144,12 @@ public class ARManager : MonoBehaviour
         SetMode(ARMode.Tile);
 
         var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
-        Debug.Log($"Tile selected: {data.name}");
+        Debug.Log($"Tile selected: {data.name} | key: {data.textureUrl} | size: {data.width}x{data.length}");
 
         if (tilePlacementSystem != null)
         {
             tilePlacementSystem.enabled = true;
-            // You can pass tile dimensions here if needed
-            // tilePlacementSystem.SetTileDimensions(data.width, data.height);
+            StartCoroutine(LoadTextureFromUrl(data.textureUrl, data.width, data.length));
         }
         else
         {
@@ -192,6 +192,27 @@ public class ARManager : MonoBehaviour
         {
             Debug.LogError("Failed to load prefab: " + key);
             Addressables.Release(handle);
+        }
+    }
+
+    IEnumerator LoadTextureFromUrl(string url, float width, float length)
+    {
+        Debug.Log("Downloading tile texture from: " + url);
+
+        using (var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(url))
+        {
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+            {
+                Texture2D texture = UnityEngine.Networking.DownloadHandlerTexture.GetContent(request);
+                tilePlacementSystem.SetTileTexture(texture, width, length);
+                Debug.Log("Tile texture downloaded successfully");
+            }
+            else
+            {
+                Debug.LogError($"Failed to download tile texture: {request.error}");
+            }
         }
     }
 
@@ -437,5 +458,8 @@ public class ARManager : MonoBehaviour
         public string addressableKey;
         public string placementType;
         public string category;
+        public string textureUrl;
+        public float width;
+        public float length;
     }
 }

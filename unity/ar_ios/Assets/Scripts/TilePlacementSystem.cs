@@ -294,6 +294,29 @@ public class TilePlacementSystem : MonoBehaviour
         AddCornerPoint(_crosshairWorldPoint);
     }
 
+    public void SetTileTexture(Texture2D texture, float width, float length)
+    {
+        // Update tile dimensions
+        tileWidth = width;
+        tileHeight = length;
+
+        // Store the new texture
+        tileTexture = texture;
+        tileTexture.wrapMode = TextureWrapMode.Repeat;
+        tileTexture.filterMode = FilterMode.Bilinear;
+
+        // If tile plane already exists, update material immediately
+        if (tileMaterial != null)
+        {
+            tileMaterial.SetTexture("_BaseMap", tileTexture);
+            tileMaterial.SetFloat("_TileWidth", tileWidth);
+            tileMaterial.SetFloat("_TileHeight", tileHeight);
+            Debug.Log($"Tile texture updated live: {width}x{length}m");
+        }
+
+        Debug.Log($"Tile texture set: {width}x{length}m");
+    }
+
     void TryPlaceCornerPoint(Vector2 screenPosition)
     {
         if (raycastManager == null)

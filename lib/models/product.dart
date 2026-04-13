@@ -66,6 +66,9 @@ class Product {
     'placementType': placementType,
     'category': category,
     'furnitureType': furnitureType,
+    'textureUrl': modelUrl,
+    'width': width / 100,
+    'length': length / 100,
   };
 
   // Helper getters for dimensions
