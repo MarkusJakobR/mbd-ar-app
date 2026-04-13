@@ -34,12 +34,21 @@ public class TilePlacementSystem : MonoBehaviour
     private float degrees;
     private bool _rotatingClockwise = false;
     private bool _rotatingCounter = false;
+    private float _offsetX = 0f;
+    private float _offsetZ = 0f;
+    private bool _isDraggingTile = false;
+    private Vector2 _lastDragPosition;
+    private float _previousPinchAngle;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
     void Update()
     {
         HandleTouchInput();
+        if (tilePlane != null)
+        {
+            HandleTileTouch();
+        }
 
         // Editor testing: Press T to add test points
         if (Application.isEditor && Input.GetKeyDown(KeyCode.T))
@@ -73,6 +82,65 @@ public class TilePlacementSystem : MonoBehaviour
             RotateTiles(degrees);
         }
 
+        float offsetSpeed = 0.5f * Time.deltaTime;
+        if (Input.GetKey(KeyCode.UpArrow)) MoveTileOffset(0, offsetSpeed);
+        if (Input.GetKey(KeyCode.DownArrow)) MoveTileOffset(0, -offsetSpeed);
+        if (Input.GetKey(KeyCode.LeftArrow)) MoveTileOffset(-offsetSpeed, 0);
+        if (Input.GetKey(KeyCode.RightArrow)) MoveTileOffset(offsetSpeed, 0);
+
+    }
+
+    void HandleTileTouch()
+    {
+        if (tileMaterial == null) return;
+
+        if (Input.touchCount == 1)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            if (touch.phase == TouchPhase.Began)
+            {
+                _isDraggingTile = true;
+                _lastDragPosition = touch.position;
+            }
+            else if (touch.phase == TouchPhase.Moved && _isDraggingTile)
+            {
+                // How much did the finger move in screen space
+                Vector2 delta = touch.position - _lastDragPosition;
+                _lastDragPosition = touch.position;
+
+                // Convert screen delta to world units
+                // Screen pixels to meters — adjust sensitivity as needed
+                float sensitivity = 0.001f;
+                MoveTileOffset(delta.x * sensitivity, delta.y * sensitivity);
+            }
+            else if (touch.phase == TouchPhase.Ended)
+            {
+                _isDraggingTile = false;
+            }
+        }
+        else if (Input.touchCount == 2)
+        {
+            Touch t0 = Input.GetTouch(0);
+            Touch t1 = Input.GetTouch(1);
+
+            float currentAngle = Mathf.Atan2(
+                t1.position.y - t0.position.y,
+                t1.position.x - t0.position.x
+            ) * Mathf.Rad2Deg;
+
+            if (t1.phase == TouchPhase.Began)
+            {
+                // Capture baseline when second finger lands
+                _previousPinchAngle = currentAngle;
+            }
+            else if (t0.phase == TouchPhase.Moved || t1.phase == TouchPhase.Moved)
+            {
+                float delta = currentAngle - _previousPinchAngle;
+                RotateTiles(delta);
+                _previousPinchAngle = currentAngle;
+            }
+        }
     }
 
     void HandleTouchInput()
@@ -219,7 +287,7 @@ public class TilePlacementSystem : MonoBehaviour
         Mesh mesh = CreateFlatQuad(size);
         meshFilter.mesh = mesh;
 
-        tileMaterial = CreateClippedTileMaterial(size, sortedPoints);
+        tileMaterial = CreateClippedTileMaterial(size, sortedPoints, center);
         meshRenderer.material = tileMaterial;
 
         CalculateAndReportTileCount(size);
@@ -284,7 +352,7 @@ public class TilePlacementSystem : MonoBehaviour
         return mesh;
     }
 
-    Material CreateClippedTileMaterial(Vector2 areaDimensions, List<Vector3> quadPoints)
+    Material CreateClippedTileMaterial(Vector2 areaDimensions, List<Vector3> quadPoints, Vector3 center)
     {
         Shader clipShader = null;
 
@@ -324,6 +392,9 @@ public class TilePlacementSystem : MonoBehaviour
         float tilingX = areaDimensions.x / tileWidth;
         float tilingZ = areaDimensions.y / tileHeight;
         material.SetTextureScale("_BaseMap", new Vector2(tilingX, tilingZ));
+
+        material.SetFloat("_CenterX", center.x);
+        material.SetFloat("_CenterZ", center.z);
 
         // Apply current rotation
         ApplyRotationToMaterial(material, currentRotation);
@@ -413,6 +484,17 @@ public class TilePlacementSystem : MonoBehaviour
         return sorted;
     }
 
+    public void MoveTileOffset(float deltaX, float deltaZ)
+    {
+        if (tileMaterial == null) return;
+
+        _offsetX += deltaX;
+        _offsetZ += deltaZ;
+
+        tileMaterial.SetFloat("_OffsetX", _offsetX);
+        tileMaterial.SetFloat("_OffsetZ", _offsetZ);
+    }
+
     Texture2D CreateTileTexture()
     {
         Debug.Log("Creating tile texture...");
@@ -493,6 +575,8 @@ public class TilePlacementSystem : MonoBehaviour
         }
 
         currentRotation = 0f;
+        _offsetX = 0f;
+        _offsetZ = 0f;
 
         Debug.Log("All points and tiles cleared");
     }

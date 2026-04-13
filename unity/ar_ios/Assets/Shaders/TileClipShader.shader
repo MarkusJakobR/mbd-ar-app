@@ -4,6 +4,13 @@ Shader "Custom/TileClipShader"
     {
         _BaseMap ("Texture", 2D) = "white" {}
         _BaseColor ("Color", Color) = (1,1,1,1)
+        _Rotation ("Rotation", Float) = 0
+        _TileWidth ("Tile Width", Float) = 0.6
+        _TileHeight ("Tile Height", Float) = 0.6
+        _OffsetX ("Offset X", Float) = 0
+        _OffsetZ ("Offset Z", Float) = 0
+        _CenterX ("Center X", Float) = 0
+        _CenterZ ("Center Z", Float) = 0
     }
     
     SubShader
@@ -65,6 +72,12 @@ Shader "Custom/TileClipShader"
                 float4 _QuadPoint2;
                 float4 _QuadPoint3;
                 float _Rotation;
+                float _TileWidth;
+                float _TileHeight;
+                float _OffsetX;
+                float _OffsetZ;
+                float _CenterX;
+                float _CenterZ;
             CBUFFER_END
             
             // Simplified point-in-polygon test for mobile
@@ -139,15 +152,18 @@ Shader "Custom/TileClipShader"
                     discard;
                 }
 
+                float2 worldOffset = worldPosXZ - float2(_OffsetX, _OffsetZ);
+
+                float2 centered = worldOffset - float2(_CenterX, _CenterZ);
+
                 // Rotate UVs around center (0.5, 0.5)
-                float2 uv = input.uv;
                 float rad = _Rotation * 3.14159265 / 180.0;
                 float cosA = cos(rad);
                 float sinA = sin(rad);
-                uv -= 0.5;                                      // shift to origin
-                uv = float2(cosA * uv.x - sinA * uv.y,         // rotate
-                            sinA * uv.x + cosA * uv.y);
-                uv += 0.5;                                      // shift back
+                float2 rotated = float2(cosA * centered.x - sinA * centered.y,         // rotate
+                                        sinA * centered.x + cosA * centered.y);
+
+                float2 uv = rotated / float2(_TileWidth, _TileHeight);
                 
                 // Sample texture
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
