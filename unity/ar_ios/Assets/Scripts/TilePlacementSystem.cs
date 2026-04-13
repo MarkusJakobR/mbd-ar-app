@@ -64,21 +64,21 @@ public class TilePlacementSystem : MonoBehaviour
         // Press R to rotate tiles (for testing)
         if (Input.GetKey(KeyCode.R) && tilePlane != null)
         {
-            degrees = 90f * Time.deltaTime;
+            degrees = 30f * Time.deltaTime;
             RotateTiles(degrees); // Rotate by 45 degrees
         }
 
         if (_rotatingClockwise)
         {
             Debug.Log("Rotating tile clockwise");
-            degrees = 90f * Time.deltaTime;
+            degrees = 30f * Time.deltaTime;
             RotateTiles(degrees);
         }
 
         if (_rotatingCounter)
         {
             Debug.Log("Rotating tile counter clockwise");
-            degrees = -90f * Time.deltaTime;
+            degrees = -30f * Time.deltaTime;
             RotateTiles(degrees);
         }
 
