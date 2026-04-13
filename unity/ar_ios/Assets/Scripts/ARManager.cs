@@ -379,6 +379,14 @@ public class ARManager : MonoBehaviour
         SendToFlutter($"TileCount:{count}|{tileName}");
     }
 
+    public void UndoTilePoint(string message)
+    {
+        if (tilePlacementSystem != null)
+            tilePlacementSystem.UndoLastPoint();
+        else
+            Debug.LogError("ARManager: tilePlacementSystem is NULL");
+    }
+
     // Flutter button receivers
     public void SwitchToFurnitureMode(string message)
     {

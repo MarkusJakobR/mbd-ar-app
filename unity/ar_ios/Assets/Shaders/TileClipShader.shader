@@ -11,6 +11,8 @@ Shader "Custom/TileClipShader"
         _OffsetZ ("Offset Z", Float) = 0
         _CenterX ("Center X", Float) = 0
         _CenterZ ("Center Z", Float) = 0
+        _GroutColor ("Grout Color", Color) = (0.6, 0.6, 0.6, 1)
+        _GroutSize ("Grout Size", Float) = 0.05
     }
     
     SubShader
@@ -78,6 +80,8 @@ Shader "Custom/TileClipShader"
                 float _OffsetZ;
                 float _CenterX;
                 float _CenterZ;
+                half4 _GroutColor;
+                float _GroutSize;
             CBUFFER_END
             
             // Simplified point-in-polygon test for mobile
@@ -164,9 +168,14 @@ Shader "Custom/TileClipShader"
                                         sinA * centered.x + cosA * centered.y);
 
                 float2 uv = rotated / float2(_TileWidth, _TileHeight);
+
+                float2 uvFrac = frac(uv);
+                bool isGrout = uvFrac.x < _GroutSize || uvFrac.y < _GroutSize;
                 
                 // Sample texture
-                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+                half4 texColor = isGrout
+                      ? _GroutColor
+                      : SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvFrac);
                 half4 color = texColor * _BaseColor;
                 
                 // Apply fog

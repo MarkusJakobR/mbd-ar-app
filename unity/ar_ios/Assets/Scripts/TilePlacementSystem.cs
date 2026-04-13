@@ -18,8 +18,8 @@ public class TilePlacementSystem : MonoBehaviour
     [Header("Visual Settings")]
     [SerializeField] private GameObject cornerMarkerPrefab; // Small sphere
     [SerializeField] private Material lineMaterial; // For boundary lines
-    [SerializeField] private Color markerColor = Color.yellow;
-    [SerializeField] private float markerSize = 0.05f; // 5cm sphere
+    [SerializeField] private Color markerColor = Color.white;
+    [SerializeField] private float markerSize = 0.025f; // 5cm sphere
 
     [Header("Crosshair Settings")]
     [SerializeField] private float crosshairRadius = 0.1f; // 10cm
@@ -311,6 +311,8 @@ public class TilePlacementSystem : MonoBehaviour
             tileMaterial.SetTexture("_BaseMap", tileTexture);
             tileMaterial.SetFloat("_TileWidth", tileWidth);
             tileMaterial.SetFloat("_TileHeight", tileHeight);
+            tileMaterial.SetFloat("_TileWidth", tileWidth);
+            tileMaterial.SetFloat("_TileHeight", tileHeight);
             Debug.Log($"Tile texture updated live: {width}x{length}m");
         }
 
@@ -539,19 +541,60 @@ public class TilePlacementSystem : MonoBehaviour
         material.SetVector("_QuadPoint3", new Vector4(quadPoints[3].x, quadPoints[3].y, quadPoints[3].z, 0));
 
         // Calculate tiling for accurate tile sizes
-        float tilingX = areaDimensions.x / tileWidth;
-        float tilingZ = areaDimensions.y / tileHeight;
-        material.SetTextureScale("_BaseMap", new Vector2(tilingX, tilingZ));
-
+        material.SetFloat("_TileWidth", tileWidth);
+        material.SetFloat("_TileHeight", tileHeight);
         material.SetFloat("_CenterX", center.x);
         material.SetFloat("_CenterZ", center.z);
+        material.SetColor("_GroutColor", groutColor); // reuses your existing groutColor field
+        material.SetFloat("_GroutSize", 0.01f);
 
         // Apply current rotation
         ApplyRotationToMaterial(material, currentRotation);
 
-        Debug.Log($"Material created, tiling: {tilingX:F2} x {tilingZ:F2}, rotation: {currentRotation}°");
+        Debug.Log($"Material created, tiling: {tileWidth:F2} x {tileHeight:F2}, rotation: {currentRotation}°");
 
         return material;
+    }
+
+    public void UndoLastPoint()
+    {
+        if (cornerPoints.Count == 0) return;
+
+        // If tile plane exists, a full quad was completed — destroy it
+        if (tilePlane != null)
+        {
+            Destroy(tilePlane);
+            tilePlane = null;
+            Destroy(tileMaterial);
+            tileMaterial = null;
+
+            // Also remove the closing boundary line (last one drawn)
+            var closingLine = boundaryLines[boundaryLines.Count - 1];
+            if (closingLine != null) Destroy(closingLine.gameObject);
+            boundaryLines.RemoveAt(boundaryLines.Count - 1);
+        }
+
+        // Remove last corner point
+        cornerPoints.RemoveAt(cornerPoints.Count - 1);
+
+        // Remove last marker
+        var lastMarker = cornerMarkers[cornerMarkers.Count - 1];
+        if (lastMarker != null) Destroy(lastMarker);
+        cornerMarkers.RemoveAt(cornerMarkers.Count - 1);
+
+        // Remove last boundary line if any
+        if (boundaryLines.Count > 0)
+        {
+            var lastLine = boundaryLines[boundaryLines.Count - 1];
+            if (lastLine != null) Destroy(lastLine.gameObject);
+            boundaryLines.RemoveAt(boundaryLines.Count - 1);
+        }
+
+        // Show crosshair again since we're back to placing points
+        if (_crosshairRoot != null && _isTileMode)
+            _crosshairRoot.SetActive(true);
+
+        Debug.Log($"Undo — points remaining: {cornerPoints.Count}");
     }
 
     public void StartRotatingTile(bool clockwise)

@@ -255,6 +255,11 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                           _pointCount += 1,
                         },
                       ),
+                      const SizedBox(width: 12),
+                      _buildIconButton(
+                        icon: Icons.undo_outlined,
+                        onTap: () => _post("UndoTilePoint"),
+                      ),
                     ],
                   ),
                 ),
