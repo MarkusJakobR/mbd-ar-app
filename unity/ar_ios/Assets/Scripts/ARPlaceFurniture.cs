@@ -342,7 +342,6 @@ public class ARPlaceFurniture : MonoBehaviour
     public void ClearScene()
     {
 
-        var uiManager = FindObjectOfType<ARUIManager>();
 
         foreach (var obj in _placedObjects)
         {
@@ -353,7 +352,6 @@ public class ARPlaceFurniture : MonoBehaviour
         _selector?.Deselect();
         isDragging = false;
         _hasPlacedFirstObject = false;
-        uiManager?.ShowTapToPlaceHint(true);
     }
 
     public void RemoveFromTracking(GameObject obj)
@@ -362,8 +360,6 @@ public class ARPlaceFurniture : MonoBehaviour
         if (_placedObjects.Count == 0)
         {
             _hasPlacedFirstObject = false;
-            var uiManager = FindObjectOfType<ARUIManager>();
-            uiManager?.ShowTapToPlaceHint(true);
         }
     }
 
@@ -409,9 +405,6 @@ public class ARPlaceFurniture : MonoBehaviour
             _placedObjects.Add(newObject);
             targetPosition = hitPose.position;
             _hasPlacedFirstObject = true;
-
-            var uiManager = FindObjectOfType<ARUIManager>();
-            uiManager?.ShowTapToPlaceHint(false);
 
             // Delay select by one frame so SelectionIndicator.Start() runs first
             StartCoroutine(SelectNextFrame(newObject));
@@ -501,9 +494,6 @@ public class ARPlaceFurniture : MonoBehaviour
         // Track it properly
         _placedObjects.Add(duplicate);
         Debug.Log($"_placedObjects count AFTER: {_placedObjects.Count}");
-
-        var uiManager = FindObjectOfType<ARUIManager>();
-        uiManager?.ShowTapToPlaceHint(false);
 
         Debug.Log("=== DuplicateSelected END ===");
 

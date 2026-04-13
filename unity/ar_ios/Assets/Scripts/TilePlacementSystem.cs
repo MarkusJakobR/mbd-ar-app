@@ -48,14 +48,12 @@ public class TilePlacementSystem : MonoBehaviour
     private LineRenderer _crosshairRing;
     private Vector3 _crosshairWorldPoint;
     private bool _crosshairVisible = false;
+    private bool _isTileMode = false;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
     void Start()
     {
-        var uiManager = FindObjectOfType<ARUIManager>();
-
-        uiManager?.ShowTapToPlaceHint(false);
         CreateCrosshair();
     }
 
@@ -186,6 +184,16 @@ public class TilePlacementSystem : MonoBehaviour
         }
     }
 
+    public void SetTileMode(bool active)
+    {
+        _isTileMode = active;
+
+        if (!active && _crosshairRoot != null)
+        {
+            _crosshairRoot.SetActive(false);
+        }
+    }
+
     void CreateCrosshair()
     {
         // Root object that we move every frame
@@ -241,6 +249,11 @@ public class TilePlacementSystem : MonoBehaviour
 
     void UpdateCrosshair()
     {
+        if (!_isTileMode)
+        {
+            _crosshairRoot.SetActive(false);
+            return;
+        }
         // Hide crosshair once 4 points are placed
         if (cornerPoints.Count >= 4)
         {

@@ -270,6 +270,30 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                 ),
               ),
 
+            if (_unityReady && !_objectSelected)
+              Positioned(
+                top: 100,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Tap to place objects',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+
             // Furniture mode controls - only when object selected
             if (_objectSelected && _unityReady)
               Positioned(

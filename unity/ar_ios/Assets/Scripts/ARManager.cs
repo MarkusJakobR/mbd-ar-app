@@ -55,16 +55,19 @@ public class ARManager : MonoBehaviour
         switch (mode)
         {
             case ARMode.Furniture:
-                // Enable furniture system
-                if (placeFurniture != null)
-                    placeFurniture.enabled = true;
 
                 // Disable tile system
                 if (tilePlacementSystem != null)
                 {
                     tilePlacementSystem.ClearAll();
+                    tilePlacementSystem.SetTileMode(false);
                     tilePlacementSystem.enabled = false;
                 }
+
+                // Enable furniture system
+                if (placeFurniture != null)
+                    placeFurniture.enabled = true;
+
 
                 Debug.Log("Switched to Furniture mode");
                 SendToFlutter("ModeChanged:Furniture");
@@ -74,6 +77,7 @@ public class ARManager : MonoBehaviour
                 // Disable furniture system
                 if (placeFurniture != null)
                 {
+                    placeFurniture.ResetScene();
                     placeFurniture.enabled = false;
                 }
 
@@ -83,7 +87,11 @@ public class ARManager : MonoBehaviour
 
                 // Enable tile system
                 if (tilePlacementSystem != null)
+                {
+
+                    tilePlacementSystem.SetTileMode(true);
                     tilePlacementSystem.enabled = true;
+                }
 
                 Debug.Log("Switched to Tile mode");
                 SendToFlutter("ModeChanged:Tile");

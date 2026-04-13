@@ -4,14 +4,11 @@ using UnityEngine.XR.ARFoundation;
 
 public class ARUIManager : MonoBehaviour
 {
-    [Header("UI")]
-    [SerializeField] private GameObject tapToPlaceHint;
-
-    public void ShowTapToPlaceHint(bool show)
-    {
-        if (tapToPlaceHint != null)
-            tapToPlaceHint.SetActive(show);
-    }
+    // public void ShowTapToPlaceHint(bool show)
+    // {
+    //     if (tapToPlaceHint != null)
+    //         tapToPlaceHint.SetActive(show);
+    // }
 
     public void TakeScreenshot()
     {
@@ -21,8 +18,8 @@ public class ARUIManager : MonoBehaviour
     IEnumerator CaptureScreenshot()
     {
         // Hide hint during screenshot
-        if (tapToPlaceHint != null)
-            tapToPlaceHint.SetActive(false);
+        // if (tapToPlaceHint != null)
+        //     tapToPlaceHint.SetActive(false);
 
         // Hide plane visualizations
         var planes = FindObjectsOfType<ARPlane>();
@@ -47,10 +44,10 @@ public class ARUIManager : MonoBehaviour
                 r.enabled = true;
 
         // Restore hint if no objects placed
-        var placeFurniture = FindObjectOfType<ARPlaceFurniture>();
-        if (tapToPlaceHint != null)
-            ShowTapToPlaceHint(
-                placeFurniture != null && !placeFurniture.HasPlacedObjects);
+        // var placeFurniture = FindObjectOfType<ARPlaceFurniture>();
+        // if (tapToPlaceHint != null)
+        //     ShowTapToPlaceHint(
+        //         placeFurniture != null && !placeFurniture.HasPlacedObjects);
 
         Debug.Log($"Screenshot saved: {path}");
 
