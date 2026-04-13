@@ -267,6 +267,18 @@ public class ARManager : MonoBehaviour
         }
     }
 
+    public void ConfirmCrosshairPoint(string message)
+    {
+        if (tilePlacementSystem != null)
+        {
+            tilePlacementSystem.ConfirmCrosshairPoint();
+        }
+        else
+        {
+            Debug.LogError("ARManager: Cannot add point");
+        }
+    }
+
     public void DeleteSelected(string message) => _selector?.DeleteSelected();
     public void DuplicateSelected(string message)
     {

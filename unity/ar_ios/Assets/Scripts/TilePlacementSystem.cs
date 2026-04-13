@@ -21,6 +21,10 @@ public class TilePlacementSystem : MonoBehaviour
     [SerializeField] private Color markerColor = Color.yellow;
     [SerializeField] private float markerSize = 0.05f; // 5cm sphere
 
+    [Header("Crosshair Settings")]
+    [SerializeField] private float crosshairRadius = 0.1f; // 10cm
+    [SerializeField] private Color crosshairColor = Color.white;
+
     [Header("Shader Reference")]
     [SerializeField] private Material tileClipMaterialReference;
 
@@ -39,12 +43,23 @@ public class TilePlacementSystem : MonoBehaviour
     private bool _isDraggingTile = false;
     private Vector2 _lastDragPosition;
     private float _previousPinchAngle;
+    private GameObject _crosshairRoot;
+    private GameObject _crosshairSphere;
+    private LineRenderer _crosshairRing;
+    private Vector3 _crosshairWorldPoint;
+    private bool _crosshairVisible = false;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
+
+    void Start()
+    {
+        CreateCrosshair();
+    }
 
     void Update()
     {
         HandleTouchInput();
+        UpdateCrosshair();
         if (tilePlane != null)
         {
             HandleTileTouch();
@@ -165,6 +180,101 @@ public class TilePlacementSystem : MonoBehaviour
                 TryPlaceCornerPoint(Input.mousePosition);
             }
         }
+    }
+
+    void CreateCrosshair()
+    {
+        // Root object that we move every frame
+        _crosshairRoot = new GameObject("CrosshairRoot");
+
+        // --- Ring with a cut ---
+        GameObject ringObj = new GameObject("CrosshairRing");
+        ringObj.transform.SetParent(_crosshairRoot.transform);
+
+        _crosshairRing = ringObj.AddComponent<LineRenderer>();
+        _crosshairRing.startWidth = 0.005f; // 5mm thick
+        _crosshairRing.endWidth = 0.005f;
+        _crosshairRing.useWorldSpace = false; // local space so it moves with root
+        _crosshairRing.loop = false;
+
+        Material ringMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        ringMat.color = crosshairColor;
+        _crosshairRing.material = ringMat;
+
+        // Build circle points with a cut at the top (skip ~30 degrees)
+        int totalPoints = 60;
+        int cutStartIndex = 0;   // cut starts at 0 degrees
+        int cutEndIndex = 5;     // cut spans ~30 degrees (5 out of 60 points)
+        int pointCount = totalPoints - (cutEndIndex - cutStartIndex);
+        _crosshairRing.positionCount = pointCount;
+
+        int idx = 0;
+        for (int i = cutEndIndex; i < totalPoints + cutStartIndex; i++)
+        {
+            float angle = (i / (float)totalPoints) * Mathf.PI * 2f;
+            float x = Mathf.Cos(angle) * crosshairRadius;
+            float z = Mathf.Sin(angle) * crosshairRadius;
+            _crosshairRing.SetPosition(idx, new Vector3(x, 0, z));
+            idx++;
+        }
+
+        // --- Center sphere ---
+        _crosshairSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        _crosshairSphere.transform.SetParent(_crosshairRoot.transform);
+        _crosshairSphere.transform.localPosition = Vector3.zero;
+        _crosshairSphere.transform.localScale = Vector3.one * 0.02f; // 2cm sphere
+
+        // Remove collider so it doesnt interfere with raycasts
+        Destroy(_crosshairSphere.GetComponent<Collider>());
+
+        Material sphereMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        sphereMat.color = crosshairColor;
+        _crosshairSphere.GetComponent<Renderer>().material = sphereMat;
+
+        // Start hidden
+        _crosshairRoot.SetActive(false);
+    }
+
+    void UpdateCrosshair()
+    {
+        // Hide crosshair once 4 points are placed
+        if (cornerPoints.Count >= 4)
+        {
+            _crosshairRoot.SetActive(false);
+            return;
+        }
+
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+
+        if (raycastManager.Raycast(screenCenter, rayHits, TrackableType.PlaneWithinPolygon))
+        {
+            Pose hitPose = rayHits[0].pose;
+            _crosshairWorldPoint = hitPose.position;
+
+            // Snap position and align ring to plane normal
+            _crosshairRoot.transform.position = _crosshairWorldPoint;
+            _crosshairRoot.transform.rotation = hitPose.rotation;
+
+            // Slightly above floor to avoid z-fighting
+            _crosshairRoot.transform.position += Vector3.up * 0.002f;
+
+            if (!_crosshairRoot.activeSelf)
+                _crosshairRoot.SetActive(true);
+        }
+        else
+        {
+            // No plane detected — hide it
+            if (_crosshairRoot.activeSelf)
+                _crosshairRoot.SetActive(false);
+        }
+    }
+
+    public void ConfirmCrosshairPoint()
+    {
+        if (cornerPoints.Count >= 4) return;
+        if (!_crosshairRoot.activeSelf) return; // no plane detected, ignore
+
+        AddCornerPoint(_crosshairWorldPoint);
     }
 
     void TryPlaceCornerPoint(Vector2 screenPosition)
@@ -573,6 +683,9 @@ public class TilePlacementSystem : MonoBehaviour
             Destroy(tileMaterial);
             tileMaterial = null;
         }
+
+        if (_crosshairRoot != null)
+            _crosshairRoot.SetActive(true);
 
         currentRotation = 0f;
         _offsetX = 0f;

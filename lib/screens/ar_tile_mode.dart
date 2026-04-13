@@ -233,13 +233,30 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
-                      'Tap on a floor to visualize tiles',
+                      'Click the button below to add points',
                       style: TextStyle(color: Colors.white, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                   ),
                 ),
               ),
+            Positioned(
+              bottom: 100,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildIconButton(
+                      icon: Icons.camera_alt_outlined,
+                      onTap: () => _post("ConfirmCrosshairPoint"),
+                      tooltip: "Click to add point",
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
             // Tile count display
             if (_unityReady && _tileCount > 0)
