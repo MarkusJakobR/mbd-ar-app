@@ -149,6 +149,7 @@ public class ARManager : MonoBehaviour
         if (tilePlacementSystem != null)
         {
             tilePlacementSystem.enabled = true;
+            tilePlacementSystem.SetTilePrice(data.price);
             StartCoroutine(LoadTextureFromUrl(data.textureUrl, data.width, data.length));
         }
         else
@@ -374,9 +375,9 @@ public class ARManager : MonoBehaviour
     }
 
 
-    public void NotifyTileCount(int count, string tileName)
+    public void NotifyTileCount(int minCount, int maxCount, float totalArea, float minCost, float maxCost)
     {
-        SendToFlutter($"TileCount:{count}|{tileName}");
+        SendToFlutter($"TileCount:{minCount}|{maxCount}|{totalArea}|{minCost:F2}|{maxCost:F2}");
     }
 
     public void UndoTilePoint(string message)
@@ -469,5 +470,6 @@ public class ARManager : MonoBehaviour
         public string textureUrl;
         public float width;
         public float length;
+        public float price;
     }
 }

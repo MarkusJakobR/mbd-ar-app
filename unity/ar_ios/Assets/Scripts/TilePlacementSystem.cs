@@ -49,6 +49,7 @@ public class TilePlacementSystem : MonoBehaviour
     private Vector3 _crosshairWorldPoint;
     private bool _crosshairVisible = false;
     private bool _isTileMode = false;
+    private float _tilePrice = 0f;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -442,7 +443,7 @@ public class TilePlacementSystem : MonoBehaviour
         tileMaterial = CreateClippedTileMaterial(size, sortedPoints, center);
         meshRenderer.material = tileMaterial;
 
-        CalculateAndReportTileCount(size);
+        CalculateAndReportTileCount(sortedPoints);
 
         Debug.Log("=== TILE AREA CREATION COMPLETE ===");
     }
@@ -721,19 +722,48 @@ public class TilePlacementSystem : MonoBehaviour
         return tex;
     }
 
-    void CalculateAndReportTileCount(Vector2 areaDimensions)
+    int SnapTileCount(float exactCount, float tolerance = 0.1f)
     {
-        int tilesX = Mathf.RoundToInt(areaDimensions.x / tileWidth);
-        int tilesZ = Mathf.RoundToInt(areaDimensions.y / tileHeight);
-        int totalTiles = tilesX * tilesZ;
+        int floored = Mathf.FloorToInt(exactCount);
+        float remainder = exactCount - floored;
 
-        float totalArea = areaDimensions.x * areaDimensions.y;
+        // If remainder is tiny, it's measurement noise — snap down
+        // If remainder is significant, need an extra tile for the cut
+        return remainder <= tolerance ? floored : floored + 1;
+    }
 
-        Debug.Log($"Area: {areaDimensions.x:F2}m x {areaDimensions.y:F2}m = {totalArea:F2}m²");
-        Debug.Log($"Tiles: {tilesX} x {tilesZ} = {totalTiles} tiles");
+    void CalculateAndReportTileCount(List<Vector3> sortedPoints)
+    {
+        // Shoelace formula for polygon area in XZ plane
+        float polygonArea = 0f;
+        int n = sortedPoints.Count;
+        for (int i = 0; i < n; i++)
+        {
+            Vector3 current = sortedPoints[i];
+            Vector3 next = sortedPoints[(i + 1) % n];
+            polygonArea += current.x * next.z;
+            polygonArea -= next.x * current.z;
+        }
+        polygonArea = Mathf.Abs(polygonArea) / 2f;
+
+        float tileArea = tileWidth * tileHeight;
+        float exactCount = polygonArea / tileArea;
+
+        // Minimum: floor (best case, perfect layout)
+        // Maximum: ceil + 10% waste (worst case, lots of cuts)
+        int minTiles = Mathf.FloorToInt(exactCount);
+        int maxTiles = Mathf.CeilToInt(exactCount);
+
+        float minCost = minTiles * _tilePrice;
+        float maxCost = maxTiles * _tilePrice;
 
         var arManager = FindObjectOfType<ARManager>();
-        arManager?.NotifyTileCount(totalTiles, $"{tileWidth}x{tileHeight}m");
+        arManager?.NotifyTileCount(minTiles, maxTiles, polygonArea, minCost, maxCost);
+    }
+
+    public void SetTilePrice(float price)
+    {
+        _tilePrice = price;
     }
 
     public void ClearAll()

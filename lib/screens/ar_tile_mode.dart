@@ -15,9 +15,13 @@ class ARTileMode extends StatefulWidget {
 class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   UnityWidgetController? _unityController;
   bool _unityReady = false;
-  int _tileCount = 0;
+  int _minTileCount = 0;
+  int _maxTileCount = 0;
   int _pointCount = 0;
+  double _minTotalCost = 0;
+  double _maxTotalCost = 0;
   double _totalArea = 0.0;
+  bool _tileExist = false;
 
   @override
   void initState() {
@@ -100,16 +104,20 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
       default:
         if (msg.startsWith('TileCount:')) {
           final parts = msg.replaceFirst('TileCount:', '').split('|');
-          final count = int.tryParse(parts[0]) ?? 0;
-          final tileName = parts.length > 1 ? parts[1] : widget.product.name;
+          final minCount = int.tryParse(parts[0]) ?? 0;
+          final maxCount = int.tryParse(parts[1]) ?? 0;
+          final area = double.parse(parts[2]);
+          final minCost = double.parse(parts[3]);
+          final maxCost = double.parse(parts[4]);
           if (mounted) {
-            setState(() => _tileCount = count);
-          }
-        } else if (msg.startsWith('TileArea:')) {
-          final area =
-              double.tryParse(msg.replaceFirst('TileArea:', '')) ?? 0.0;
-          if (mounted) {
-            setState(() => _totalArea = area);
+            setState(() {
+              _minTileCount = minCount;
+              _maxTileCount = maxCount;
+              _minTotalCost = minCost;
+              _maxTotalCost = maxCost;
+              _totalArea = area;
+              _tileExist = true;
+            });
           }
         }
         break;
@@ -144,8 +152,12 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               onTap: () {
                 _post('ClearAll');
                 setState(() {
-                  _tileCount = 0;
+                  _minTileCount = 0;
+                  _maxTileCount = 0;
+                  _minTotalCost = 0.0;
+                  _maxTotalCost = 0.0;
                   _totalArea = 0.0;
+                  _tileExist = false;
                 });
               },
               tooltip: 'Clear tiles',
@@ -240,7 +252,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-            if (_unityReady && _tileCount == 0)
+            if (_unityReady && _tileExist == false)
               Positioned(
                 bottom: 100,
                 left: 0,
@@ -266,7 +278,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               ),
 
             // Tile count display
-            if (_unityReady && _tileCount > 0)
+            if (_unityReady && _tileExist == true)
               Positioned(
                 bottom: 32,
                 left: 16,
@@ -311,7 +323,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Tiles needed',
+                                'Estimated tiles',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,
@@ -319,7 +331,11 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '$_tileCount tiles',
+                                _maxTileCount == 1
+                                    ? '1 tile'
+                                    : _minTileCount == _maxTileCount
+                                    ? '$_minTileCount tiles'
+                                    : '$_minTileCount - $_maxTileCount tiles',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -328,6 +344,32 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                               ),
                             ],
                           ),
+                          if (_minTotalCost > 0)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Total cost',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _maxTileCount == 1
+                                      ? '₱ ${_maxTotalCost.toStringAsFixed(2)}'
+                                      : _minTileCount == _maxTileCount
+                                      ? '₱ ${_minTotalCost.toStringAsFixed(2)}'
+                                      : '₱ ${_minTotalCost.toStringAsFixed(2)} - ${_maxTotalCost.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2C2A6D),
+                                  ),
+                                ),
+                              ],
+                            ),
                           if (_totalArea > 0)
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
@@ -343,8 +385,9 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                                 Text(
                                   '${_totalArea.toStringAsFixed(2)} m²',
                                   style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2C2A6D),
                                   ),
                                 ),
                               ],

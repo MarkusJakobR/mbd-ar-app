@@ -69,6 +69,7 @@ class Product {
     'textureUrl': modelUrl,
     'width': width / 100,
     'length': length / 100,
+    'price': price,
   };
 
   // Helper getters for dimensions
