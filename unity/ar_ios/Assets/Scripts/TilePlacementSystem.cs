@@ -50,6 +50,7 @@ public class TilePlacementSystem : MonoBehaviour
     private bool _crosshairVisible = false;
     private bool _isTileMode = false;
     private float _tilePrice = 0f;
+    private ARPlaneManager _planeManager;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -192,6 +193,14 @@ public class TilePlacementSystem : MonoBehaviour
         if (!active && _crosshairRoot != null)
         {
             _crosshairRoot.SetActive(false);
+        }
+
+        if (_planeManager != null)
+        {
+            foreach (var plane in _planeManager.trackables)
+            {
+                plane.gameObject.SetActive(!active);
+            }
         }
     }
 
@@ -383,7 +392,11 @@ public class TilePlacementSystem : MonoBehaviour
             marker.transform.position = position;
             marker.transform.localScale = Vector3.one * markerSize;
 
-            var renderer = marker.GetComponent<Renderer>();
+        }
+
+        var renderer = marker.GetComponent<Renderer>();
+        if (renderer != null)
+        {
             renderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             renderer.material.color = markerColor;
         }
@@ -412,9 +425,9 @@ public class TilePlacementSystem : MonoBehaviour
         else
         {
             line.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            line.material.color = markerColor;
         }
 
+        line.material.color = markerColor;
         boundaryLines.Add(line);
     }
 
