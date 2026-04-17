@@ -140,47 +140,99 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
         return true;
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.product.name),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _onBack,
-          ),
-          actions: [
-            _buildIconButton(
-              icon: Icons.refresh,
-              onTap: () {
-                _post('ClearAll');
-                setState(() {
-                  _minTileCount = 0;
-                  _maxTileCount = 0;
-                  _minTotalCost = 0.0;
-                  _maxTotalCost = 0.0;
-                  _totalArea = 0.0;
-                  _tileExist = false;
-                });
-              },
-              tooltip: 'Clear tiles',
-            ),
-            _buildIconButton(
-              icon: Icons.help_outline,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Tap on a floor plane to visualize tiles'),
-                  ),
-                );
-              },
-              tooltip: 'Help',
-            ),
-          ],
-        ),
+        extendBodyBehindAppBar: true,
         body: Stack(
           children: [
             UnityWidget(
               onUnityCreated: onUnityCreated,
               onUnityMessage: onUnityMessage,
               fullscreen: false,
+            ),
+
+            Positioned(
+              top: 16,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildIconButton(icon: Icons.arrow_back, onTap: _onBack),
+
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.product.name,
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                          Text(
+                            '₱${widget.product.price.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Colors.white),
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'reset':
+                              _post('ClearAll');
+                              setState(() {
+                                _minTileCount = 0;
+                                _maxTileCount = 0;
+                                _minTotalCost = 0.0;
+                                _maxTotalCost = 0.0;
+                                _totalArea = 0.0;
+                                _tileExist = false;
+                              });
+                              break;
+                            case 'help':
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Tap on a floor plane to visualize tiles',
+                                  ),
+                                ),
+                              );
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'reset',
+                            child: Row(
+                              children: [
+                                Icon(Icons.refresh, size: 20),
+                                SizedBox(width: 8),
+                                Text('Reset'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'help',
+                            child: Row(
+                              children: [
+                                Icon(Icons.help_outline, size: 20),
+                                SizedBox(width: 8),
+                                Text('Help'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
             if (!_unityReady)
@@ -231,7 +283,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
             // Tile mode instruction overlay
             if (_unityReady && _pointCount == 0)
               Positioned(
-                top: 100,
+                top: 200,
                 left: 0,
                 right: 0,
                 child: Center(
@@ -419,8 +471,8 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
           isActive: isActive,
           child: Icon(
             icon,
-            color: color ?? (isActive ? Colors.white : Colors.black87),
-            size: 22,
+            color: color ?? (isActive ? Colors.white : Colors.white),
+            size: 26,
           ),
         ),
       ),
@@ -470,9 +522,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
         print('Flutter: Button cancelled - $tooltip');
         onUp();
       },
-      child: _buttonContainer(
-        child: Icon(icon, color: Colors.black87, size: 22),
-      ),
+      child: _buttonContainer(child: Icon(icon, color: Colors.white, size: 26)),
     );
   }
 
@@ -481,15 +531,8 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF2C2A6D) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: isActive ? const Color(0xFF2C2A6D) : Colors.black26,
+        borderRadius: BorderRadius.circular(100),
       ),
       child: Center(child: child),
     );
