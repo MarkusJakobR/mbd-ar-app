@@ -240,13 +240,13 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
       TutorialStep(
         title: 'More Options',
         description:
-            'Duplicate furniture or reset the entire scene from the menu.',
+            'Duplicate furniture, reset the entire scene, or take a screenshot from the menu.',
         targetKey: _menuKey,
       ),
       TutorialStep(
         title: "You're All Set!",
         description: 'Start exploring how your furniture looks in your space.',
-        targetKey: null,
+        showSpotlight: false,
       ),
     ];
   }
@@ -333,23 +333,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
               ],
             ),
 
-            if (!_unityReady)
-              Container(
-                color: Colors.black54,
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: Colors.white),
-                      SizedBox(height: 12),
-                      Text(
-                        'Loading AR...',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            if (!_unityReady) ARLoadingBox(),
 
             if (_unityReady && !_objectSelected)
               Positioned(
@@ -419,7 +403,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                 ),
               ),
             if (_showTutorial)
-              ARFurnitureTutorial(
+              ARTutorial(
                 steps: _buildTutorialSteps(),
                 onComplete: () => setState(() => _showTutorial = false),
               ),

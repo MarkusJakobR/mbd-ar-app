@@ -19,25 +19,20 @@ class TutorialStep {
   });
 }
 
-class ARFurnitureTutorial extends StatefulWidget {
+class ARTutorial extends StatefulWidget {
   final List<TutorialStep> steps;
   final VoidCallback onComplete;
 
-  const ARFurnitureTutorial({
-    super.key,
-    required this.steps,
-    required this.onComplete,
-  });
+  const ARTutorial({super.key, required this.steps, required this.onComplete});
 
   @override
-  State<ARFurnitureTutorial> createState() => _ARFurnitureTutorialState();
+  State<ARTutorial> createState() => _ARTutorialState();
 }
 
-class _ARFurnitureTutorialState extends State<ARFurnitureTutorial>
+class _ARTutorialState extends State<ARTutorial>
     with SingleTickerProviderStateMixin {
   int _currentStep = 0;
   Offset _spotlightCenter = Offset.zero;
-  double _spotlightRadius = 60;
   late AnimationController _animController;
   late Animation<Offset> _positionAnimation;
   Offset _previousCenter = Offset.zero;
@@ -230,8 +225,7 @@ class _ARFurnitureTutorialState extends State<ARFurnitureTutorial>
   }
 
   Widget _buildStepText(TutorialStep step, Offset center) {
-    final isLower = center.dy > MediaQuery.of(context).size.height / 2;
-    final textOffset = _spotlightRadius + 24;
+    final textOffset = step.radius + 24;
 
     return Positioned(
       top: !_isSpotlightInLowerHalf ? center.dy + textOffset : null,

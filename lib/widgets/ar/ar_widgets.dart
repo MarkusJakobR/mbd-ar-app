@@ -5,4 +5,4 @@ export 'ar_capture_button.dart';
 export 'ar_top_bar.dart';
 export 'ar_tile_info_card.dart';
 export 'ar_loading_box.dart';
-export 'ar_furniture_tutorial.dart';
+export 'ar_tutorial.dart';

@@ -27,6 +27,15 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   bool _tileExist = false;
   bool _markersVisible = true;
 
+  final GlobalKey _rotateCWKey = GlobalKey();
+  final GlobalKey _rotateCCWKey = GlobalKey();
+  final GlobalKey _visibleKey = GlobalKey();
+  final GlobalKey _menuKey = GlobalKey();
+  final GlobalKey _hintKey = GlobalKey();
+  final GlobalKey _captureKey = GlobalKey();
+  final GlobalKey _undoKey = GlobalKey();
+  bool _showTutorial = false;
+
   @override
   void initState() {
     super.initState();
@@ -217,6 +226,62 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
     _unityController!.postMessage('ARManager', 'OnTileSelected', message);
   }
 
+  List<TutorialStep> _buildTutorialSteps() {
+    return [
+      TutorialStep(
+        title: 'Point the Crosshair',
+        description:
+            'Move your phone to point the crosshair at the floor where you want to place a corner point',
+        targetKey: _hintKey,
+        radius: 160,
+      ),
+      TutorialStep(
+        title: 'Add a Corner Point',
+        description:
+            'Tap the button below to place a corner point where the crosshair is pointing. You need 4 points in total to generate the tile preview.',
+        targetKey: _captureKey,
+        radius: 70,
+      ),
+      TutorialStep(
+        title: 'Made a Mistake?',
+        description:
+            'Tap the undo button to remove the last placed point and try again.',
+        targetKey: _undoKey,
+      ),
+      TutorialStep(
+        title: 'Rotate the Tiles',
+        description:
+            'Hold the rotate buttons on the right side to spin the tile pattern clockwise or counterclockwise.',
+        targetKey: _rotateCWKey,
+        secondTargetKey: _rotateCCWKey,
+      ),
+      TutorialStep(
+        title: 'Toggle Guide Visibility',
+        description:
+            'Tap the visibility button to hide and unhide the markers and lines that serves as your tile\'s guide',
+        targetKey: _visibleKey,
+      ),
+      TutorialStep(
+        title: 'Reposition the Tiles',
+        description:
+            'Slide your finger on the screen to shift the tile pattern and align it to your preference.',
+        showSpotlight: false,
+      ),
+      TutorialStep(
+        title: "More Options",
+        description:
+            'Reset the entire scene, or take a screenshot from the menu.',
+        targetKey: _menuKey,
+      ),
+      TutorialStep(
+        title: "You're All Set!",
+        description:
+            'Start measuring your floor and preview how the tiles will look in your space.',
+        showSpotlight: false,
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -236,6 +301,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
             ),
 
             ARTopBar(
+              menuKey: _menuKey,
               onBack: _onBack,
               title: widget.product.name,
               subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
@@ -256,6 +322,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                     _post('TakeScreenshotTile');
                     break;
                   case 'help':
+                    setState(() => _showTutorial = true);
                     // show tutorial later
                     break;
                 }
@@ -297,7 +364,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
 
             if (!_unityReady) ARLoadingBox(),
 
-            if (_unityReady && _tileExist == true)
+            if ((_unityReady && _tileExist) || _showTutorial)
               Positioned(
                 right: 16,
                 top: MediaQuery.of(context).size.height / 2 - 50,
@@ -307,18 +374,21 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ARHoldButton(
+                        key: _rotateCWKey,
                         icon: Icons.rotate_right,
                         onDown: () => _post('RotateClockwiseTile'),
                         onUp: () => _post('StopRotatingTile'),
                       ),
                       const SizedBox(height: 12),
                       ARHoldButton(
+                        key: _rotateCCWKey,
                         icon: Icons.rotate_left,
                         onDown: () => _post('RotateCounterTile'),
                         onUp: () => _post('StopRotatingTile'),
                       ),
                       const SizedBox(height: 12),
                       ARIconButton(
+                        key: _visibleKey,
                         icon: _markersVisible
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
@@ -340,6 +410,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                 right: 0,
                 child: Center(
                   child: Container(
+                    key: _hintKey,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 12,
@@ -366,6 +437,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                   children: [
                     // Capture button — centered
                     ARCaptureButton(
+                      key: _captureKey,
                       onTap: () {
                         _post('ConfirmCrosshairPoint');
                         setState(() => _pointCount += 1);
@@ -375,6 +447,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                     Positioned(
                       left: MediaQuery.of(context).size.width / 2 + 80,
                       child: ARIconButton(
+                        key: _undoKey,
                         icon: Icons.undo_outlined,
                         onTap: () => _post('UndoTilePoint'),
                       ),
@@ -392,6 +465,12 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                 minTotalCost: _minTotalCost,
                 maxTotalCost: _maxTotalCost,
                 totalArea: _totalArea,
+              ),
+
+            if (_showTutorial)
+              ARTutorial(
+                steps: _buildTutorialSteps(),
+                onComplete: () => setState(() => _showTutorial = false),
               ),
           ],
         ),
