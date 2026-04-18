@@ -254,6 +254,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                     break;
                   case 'screenshot':
                     _post('TakeScreenshotTile');
+                    break;
                   case 'help':
                     // show tutorial later
                     break;

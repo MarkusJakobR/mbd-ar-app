@@ -4,6 +4,7 @@ import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../models/product.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../widgets/ar/ar_widgets.dart';
 import 'dart:io';
 
 class ARFurnitureMode extends StatefulWidget {
@@ -211,45 +212,76 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
         return true;
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.product.name),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _onBack,
-          ),
-          actions: [
-            _buildIconButton(
-              icon: Icons.refresh,
-              onTap: () => _post('ResetScene'),
-              tooltip: 'Reset',
-            ),
-            if (_objectSelected)
-              _buildIconButton(
-                icon: Icons.copy,
-                onTap: () => _post('DuplicateSelected'),
-                tooltip: 'Duplicate',
-              ),
-            _buildIconButton(
-              icon: Icons.help_outline,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Tap to place, drag to move, pinch to rotate',
-                    ),
-                  ),
-                );
-              },
-              tooltip: 'Help',
-            ),
-          ],
-        ),
+        extendBodyBehindAppBar: true,
         body: Stack(
           children: [
             UnityWidget(
               onUnityCreated: onUnityCreated,
               onUnityMessage: onUnityMessage,
               fullscreen: false,
+            ),
+            ARTopBar(
+              onBack: _onBack,
+              title: widget.product.name,
+              subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
+              onMenuSelected: (value) {
+                switch (value) {
+                  case 'reset':
+                    _post('ResetScene');
+                    break;
+                  case 'duplicate':
+                    _post('DuplicateSelected');
+                    break;
+                  case 'screenshot':
+                    _post('TakeScreenshot');
+                    break;
+                  case 'help':
+                    // show tutorial later
+                    break;
+                }
+              },
+              menuItems: [
+                PopupMenuItem(
+                  value: 'reset',
+                  child: Row(
+                    children: [
+                      Icon(Icons.refresh, size: 20),
+                      SizedBox(width: 8),
+                      Text('Reset'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'screenshot',
+                  child: Row(
+                    children: [
+                      Icon(Icons.camera_alt_outlined, size: 20),
+                      SizedBox(width: 8),
+                      Text('Screenshot'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'duplicate',
+                  child: Row(
+                    children: [
+                      Icon(Icons.copy_outlined, size: 20),
+                      SizedBox(width: 8),
+                      Text('Duplicate'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'help',
+                  child: Row(
+                    children: [
+                      Icon(Icons.help_outline, size: 20),
+                      SizedBox(width: 8),
+                      Text('Help'),
+                    ],
+                  ),
+                ),
+              ],
             ),
 
             if (!_unityReady)
@@ -272,7 +304,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
 
             if (_unityReady && !_objectSelected)
               Positioned(
-                top: 100,
+                top: 200,
                 left: 0,
                 right: 0,
                 child: Center(
@@ -298,128 +330,43 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
             if (_objectSelected && _unityReady)
               Positioned(
                 right: 16,
-                top: 0,
-                bottom: 0,
-                child: Center(
+                top: MediaQuery.of(context).size.height / 2 - 50,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 24),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildHoldButton(
-                        icon: Icons.rotate_right,
+                      ARHoldButton(
                         onDown: () => _post('RotateClockwise'),
                         onUp: () => _post('StopRotating'),
-                        tooltip: 'Rotate right',
+                        icon: Icons.rotate_right,
                       ),
                       const SizedBox(height: 12),
-                      _buildHoldButton(
-                        icon: Icons.rotate_left,
+                      ARHoldButton(
                         onDown: () => _post('RotateCounter'),
                         onUp: () => _post('StopRotating'),
-                        tooltip: 'Rotate left',
+                        icon: Icons.rotate_left,
                       ),
                       const SizedBox(height: 12),
-                      _buildIconButton(
-                        icon: _isLocked ? Icons.lock : Icons.lock_open,
+                      ARIconButton(
                         onTap: () {
                           _post('ToggleLock');
                           setState(() => _isLocked = !_isLocked);
                         },
-                        isActive: _isLocked,
-                        tooltip: _isLocked ? 'Unlock' : 'Lock',
+                        icon: _isLocked ? Icons.lock : Icons.lock_open,
                       ),
                       const SizedBox(height: 12),
-                      _buildIconButton(
-                        icon: Icons.delete_outline,
+                      ARIconButton(
                         onTap: () => _post('DeleteSelected'),
-                        color: Colors.red.shade400,
-                        tooltip: 'Delete',
+                        icon: Icons.delete_outline,
                       ),
                     ],
                   ),
                 ),
               ),
-
-            // Screenshot button
-            if (_unityReady)
-              Positioned(
-                right: 16,
-                bottom: 32,
-                child: _buildIconButton(
-                  icon: Icons.camera_alt_outlined,
-                  onTap: () => _post('TakeScreenshot'),
-                  tooltip: 'Screenshot',
-                ),
-              ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHoldButton({
-    required IconData icon,
-    required VoidCallback onDown,
-    required VoidCallback onUp,
-    String? tooltip,
-  }) {
-    return GestureDetector(
-      onTapDown: (_) {
-        print('Flutter: Button pressed - $tooltip');
-        onDown();
-      },
-      onTapUp: (_) {
-        print('Flutter: Button released - $tooltip');
-        onUp();
-      },
-      onTapCancel: () {
-        print('Flutter: Button cancelled - $tooltip');
-        onUp();
-      },
-      child: _buttonContainer(
-        child: Icon(icon, color: Colors.black87, size: 22),
-      ),
-    );
-  }
-
-  Widget _buildIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    bool isActive = false,
-    Color? color,
-    String? tooltip,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Tooltip(
-        message: tooltip ?? '',
-        child: _buttonContainer(
-          isActive: isActive,
-          child: Icon(
-            icon,
-            color: color ?? (isActive ? Colors.white : Colors.black87),
-            size: 22,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buttonContainer({required Widget child, bool isActive = false}) {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF2C2A6D) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Center(child: child),
     );
   }
 }
