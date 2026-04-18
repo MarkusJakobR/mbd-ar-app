@@ -18,9 +18,16 @@ class ARFurnitureMode extends StatefulWidget {
 class _ARFurnitureModeState extends State<ARFurnitureMode>
     with WidgetsBindingObserver {
   UnityWidgetController? _unityController;
+  final GlobalKey _rotateCWKey = GlobalKey();
+  final GlobalKey _rotateCCWKey = GlobalKey();
+  final GlobalKey _lockKey = GlobalKey();
+  final GlobalKey _deleteKey = GlobalKey();
+  final GlobalKey _menuKey = GlobalKey();
+  final GlobalKey _hintKey = GlobalKey();
   bool _unityReady = false;
   bool _objectSelected = false;
   bool _isLocked = false;
+  bool _showTutorial = false;
 
   @override
   void initState() {
@@ -203,6 +210,47 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
     }
   }
 
+  List<TutorialStep> _buildTutorialSteps() {
+    return [
+      TutorialStep(
+        title: 'Place Your Furniture',
+        description:
+            'Tap anywhere on a detected floor plane to place the furniture.',
+        targetKey: _hintKey,
+        radius: 120,
+      ),
+      TutorialStep(
+        title: 'Rotate',
+        description:
+            'Hold the rotate buttons to spin the furniture, or use two fingers to twist it.',
+        targetKey: _rotateCWKey,
+        secondTargetKey: _rotateCCWKey,
+      ),
+      TutorialStep(
+        title: 'Lock in Place',
+        description:
+            'Lock the furniture to prevent accidental movement or rotation.',
+        targetKey: _lockKey,
+      ),
+      TutorialStep(
+        title: 'Delete',
+        description: 'Remove the currently selected furniture from the scene.',
+        targetKey: _deleteKey,
+      ),
+      TutorialStep(
+        title: 'More Options',
+        description:
+            'Duplicate furniture or reset the entire scene from the menu.',
+        targetKey: _menuKey,
+      ),
+      TutorialStep(
+        title: "You're All Set!",
+        description: 'Start exploring how your furniture looks in your space.',
+        targetKey: null,
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -221,6 +269,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
               fullscreen: false,
             ),
             ARTopBar(
+              menuKey: _menuKey,
               onBack: _onBack,
               title: widget.product.name,
               subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
@@ -236,7 +285,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                     _post('TakeScreenshot');
                     break;
                   case 'help':
-                    // show tutorial later
+                    setState(() => _showTutorial = true);
                     break;
                 }
               },
@@ -309,6 +358,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                 right: 0,
                 child: Center(
                   child: Container(
+                    key: _hintKey,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 12,
@@ -327,7 +377,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
               ),
 
             // Furniture mode controls - only when object selected
-            if (_objectSelected && _unityReady)
+            if ((_objectSelected && _unityReady) || _showTutorial)
               Positioned(
                 right: 16,
                 top: MediaQuery.of(context).size.height / 2 - 50,
@@ -337,18 +387,21 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ARHoldButton(
+                        key: _rotateCWKey,
                         onDown: () => _post('RotateClockwise'),
                         onUp: () => _post('StopRotating'),
                         icon: Icons.rotate_right,
                       ),
                       const SizedBox(height: 12),
                       ARHoldButton(
+                        key: _rotateCCWKey,
                         onDown: () => _post('RotateCounter'),
                         onUp: () => _post('StopRotating'),
                         icon: Icons.rotate_left,
                       ),
                       const SizedBox(height: 12),
                       ARIconButton(
+                        key: _lockKey,
                         onTap: () {
                           _post('ToggleLock');
                           setState(() => _isLocked = !_isLocked);
@@ -357,12 +410,18 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                       ),
                       const SizedBox(height: 12),
                       ARIconButton(
+                        key: _deleteKey,
                         onTap: () => _post('DeleteSelected'),
                         icon: Icons.delete_outline,
                       ),
                     ],
                   ),
                 ),
+              ),
+            if (_showTutorial)
+              ARFurnitureTutorial(
+                steps: _buildTutorialSteps(),
+                onComplete: () => setState(() => _showTutorial = false),
               ),
           ],
         ),

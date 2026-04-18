@@ -8,6 +8,7 @@ class ARTopBar extends StatelessWidget {
   final VoidCallback onBack;
   final List<PopupMenuEntry<String>> menuItems;
   final void Function(String) onMenuSelected;
+  final GlobalKey? menuKey;
 
   const ARTopBar({
     super.key,
@@ -16,6 +17,7 @@ class ARTopBar extends StatelessWidget {
     required this.onBack,
     required this.menuItems,
     required this.onMenuSelected,
+    this.menuKey,
   });
 
   @override
@@ -54,6 +56,7 @@ class ARTopBar extends StatelessWidget {
               ),
               ARButtonContainer(
                 child: PopupMenuButton<String>(
+                  key: menuKey,
                   icon: const Icon(Icons.more_vert, color: Colors.white),
                   onSelected: onMenuSelected,
                   itemBuilder: (context) => menuItems,
