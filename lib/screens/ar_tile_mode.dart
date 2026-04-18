@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../models/product.dart';
-import 'dart:io';
+import '../widgets/ar/ar_widgets.dart';
 
 class ARTileMode extends StatefulWidget {
   final Product product;
@@ -68,6 +68,15 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
 
   Future<void> _onBack() async {
     _stopCamera();
+    _post('ClearAll');
+    setState(() {
+      _minTileCount = 0;
+      _maxTileCount = 0;
+      _minTotalCost = 0.0;
+      _maxTotalCost = 0.0;
+      _totalArea = 0.0;
+      _tileExist = false;
+    });
     await Future.delayed(const Duration(milliseconds: 300));
     if (mounted) Navigator.pop(context);
   }
@@ -149,111 +158,55 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               fullscreen: false,
             ),
 
-            Positioned(
-              top: 16,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+            ARTopBar(
+              onBack: _onBack,
+              title: widget.product.name,
+              subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
+              onMenuSelected: (value) {
+                switch (value) {
+                  case 'reset':
+                    _post('ClearAll');
+                    setState(() {
+                      _minTileCount = 0;
+                      _maxTileCount = 0;
+                      _minTotalCost = 0.0;
+                      _maxTotalCost = 0.0;
+                      _totalArea = 0.0;
+                      _tileExist = false;
+                    });
+                    break;
+                  case 'help':
+                    // show tutorial later
+                    break;
+                }
+              },
+              menuItems: const [
+                PopupMenuItem(
+                  value: 'reset',
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildIconButton(icon: Icons.arrow_back, onTap: _onBack),
-
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            widget.product.name,
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
-                          Text(
-                            '₱${widget.product.price.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.white),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'reset':
-                              _post('ClearAll');
-                              setState(() {
-                                _minTileCount = 0;
-                                _maxTileCount = 0;
-                                _minTotalCost = 0.0;
-                                _maxTotalCost = 0.0;
-                                _totalArea = 0.0;
-                                _tileExist = false;
-                              });
-                              break;
-                            case 'help':
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Tap on a floor plane to visualize tiles',
-                                  ),
-                                ),
-                              );
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'reset',
-                            child: Row(
-                              children: [
-                                Icon(Icons.refresh, size: 20),
-                                SizedBox(width: 8),
-                                Text('Reset'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'help',
-                            child: Row(
-                              children: [
-                                Icon(Icons.help_outline, size: 20),
-                                SizedBox(width: 8),
-                                Text('Help'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                      Icon(Icons.refresh, size: 20),
+                      SizedBox(width: 8),
+                      Text('Reset'),
                     ],
                   ),
                 ),
-              ),
+                PopupMenuItem(
+                  value: 'help',
+                  child: Row(
+                    children: [
+                      Icon(Icons.help_outline, size: 20),
+                      SizedBox(width: 8),
+                      Text('Help'),
+                    ],
+                  ),
+                ),
+              ],
             ),
 
-            if (!_unityReady)
-              Container(
-                color: Colors.black54,
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: Colors.white),
-                      SizedBox(height: 12),
-                      Text(
-                        'Loading AR...',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            if (!_unityReady) ARLoadingBox(),
 
-            if (_unityReady)
+            if (_unityReady && _tileExist == true)
               Positioned(
                 right: 16,
                 top: 0,
@@ -262,18 +215,16 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildHoldButton(
+                      ARHoldButton(
                         icon: Icons.rotate_right,
                         onDown: () => _post('RotateClockwiseTile'),
                         onUp: () => _post('StopRotatingTile'),
-                        tooltip: 'Rotate right',
                       ),
                       const SizedBox(height: 12),
-                      _buildHoldButton(
+                      ARHoldButton(
                         icon: Icons.rotate_left,
                         onDown: () => _post('RotateCounterTile'),
                         onUp: () => _post('StopRotatingTile'),
-                        tooltip: 'Rotate left',
                       ),
                     ],
                   ),
@@ -313,16 +264,16 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildCaptureButton(
+                      ARCaptureButton(
                         onTap: () => {
-                          _post("ConfirmCrosshairPoint"),
+                          _post('ConfirmCrosshairPoint'),
                           _pointCount += 1,
                         },
                       ),
                       const SizedBox(width: 12),
-                      _buildIconButton(
+                      ARIconButton(
                         icon: Icons.undo_outlined,
-                        onTap: () => _post("UndoTilePoint"),
+                        onTap: () => _post('UndoTilePoint'),
                       ),
                     ],
                   ),
@@ -331,210 +282,17 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
 
             // Tile count display
             if (_unityReady && _tileExist == true)
-              Positioned(
-                bottom: 32,
-                left: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.grid_on, color: Color(0xFF2C2A6D)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              widget.product.name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Estimated tiles',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _maxTileCount == 1
-                                    ? '1 tile'
-                                    : _minTileCount == _maxTileCount
-                                    ? '$_minTileCount tiles'
-                                    : '$_minTileCount - $_maxTileCount tiles',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2C2A6D),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (_minTotalCost > 0)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Total cost',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _maxTileCount == 1
-                                      ? '₱ ${_maxTotalCost.toStringAsFixed(2)}'
-                                      : _minTileCount == _maxTileCount
-                                      ? '₱ ${_minTotalCost.toStringAsFixed(2)}'
-                                      : '₱ ${_minTotalCost.toStringAsFixed(2)} - ${_maxTotalCost.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2C2A6D),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          if (_totalArea > 0)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Text(
-                                  'Total area',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${_totalArea.toStringAsFixed(2)} m²',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2C2A6D),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+              ARTileInfoCard(
+                productName: widget.product.name,
+                minTileCount: _minTileCount,
+                maxTileCount: _maxTileCount,
+                minTotalCost: _minTotalCost,
+                maxTotalCost: _maxTotalCost,
+                totalArea: _totalArea,
               ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    bool isActive = false,
-    Color? color,
-    String? tooltip,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Tooltip(
-        message: tooltip ?? '',
-        child: _buttonContainer(
-          isActive: isActive,
-          child: Icon(
-            icon,
-            color: color ?? (isActive ? Colors.white : Colors.white),
-            size: 26,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCaptureButton({required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 70,
-        height: 70,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          color: Colors.transparent,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Container(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHoldButton({
-    required IconData icon,
-    required VoidCallback onDown,
-    required VoidCallback onUp,
-    String? tooltip,
-  }) {
-    return GestureDetector(
-      onTapDown: (_) {
-        print('Flutter: Button pressed - $tooltip');
-        onDown();
-      },
-      onTapUp: (_) {
-        print('Flutter: Button released - $tooltip');
-        onUp();
-      },
-      onTapCancel: () {
-        print('Flutter: Button cancelled - $tooltip');
-        onUp();
-      },
-      child: _buttonContainer(child: Icon(icon, color: Colors.white, size: 26)),
-    );
-  }
-
-  Widget _buttonContainer({required Widget child, bool isActive = false}) {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF2C2A6D) : Colors.black26,
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Center(child: child),
     );
   }
 }
