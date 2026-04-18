@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../models/product.dart';
 import '../widgets/ar/ar_widgets.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 class ARTileMode extends StatefulWidget {
   final Product product;
@@ -22,6 +25,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   double _maxTotalCost = 0;
   double _totalArea = 0.0;
   bool _tileExist = false;
+  bool _markersVisible = true;
 
   @override
   void initState() {
@@ -103,6 +107,12 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
     final msg = message.toString();
     print('Message from Unity: $msg');
 
+    if (msg.startsWith('ScreenshotSaved:')) {
+      final path = msg.replaceFirst('ScreenshotSaved:', '');
+      _handleScreenshotSaved(path);
+      return;
+    }
+
     switch (msg) {
       case 'OnUnityReady':
         if (!_unityReady && mounted) {
@@ -130,6 +140,73 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
           }
         }
         break;
+    }
+  }
+
+  Future<void> _handleScreenshotSaved(String path) async {
+    try {
+      print('Screenshot path received: $path');
+
+      if (Platform.isIOS) {
+        var status = await Permission.photosAddOnly.status;
+        print('Current permission status: $status');
+
+        if (!status.isGranted) {
+          print('Requesting photo permission...');
+          status = await Permission.photosAddOnly.request();
+          print('Permission result: $status');
+        }
+
+        if (status.isDenied ||
+            status.isPermanentlyDenied ||
+            status.isRestricted) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Photo permission denied. Enable in Settings.',
+                ),
+                action: SnackBarAction(
+                  label: 'Settings',
+                  onPressed: () => openAppSettings(),
+                ),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      final File imageFile = File(path);
+      print('File exists: ${await imageFile.exists()}');
+
+      if (await imageFile.exists()) {
+        print('Saving to gallery...');
+        final result = await ImageGallerySaver.saveFile(
+          path,
+          isReturnPathOfIOS: true,
+        );
+        print('Save result: $result');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result != null && result['isSuccess'] == true
+                    ? 'Screenshot saved to Photos'
+                    : 'Failed to save screenshot',
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error saving screenshot: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -175,12 +252,14 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                       _tileExist = false;
                     });
                     break;
+                  case 'screenshot':
+                    _post('TakeScreenshotTile');
                   case 'help':
                     // show tutorial later
                     break;
                 }
               },
-              menuItems: const [
+              menuItems: [
                 PopupMenuItem(
                   value: 'reset',
                   child: Row(
@@ -191,6 +270,17 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                     ],
                   ),
                 ),
+                if (_tileExist == true)
+                  PopupMenuItem(
+                    value: 'screenshot',
+                    child: Row(
+                      children: [
+                        Icon(Icons.camera_alt_outlined, size: 20),
+                        SizedBox(width: 8),
+                        Text('Screenshot'),
+                      ],
+                    ),
+                  ),
                 PopupMenuItem(
                   value: 'help',
                   child: Row(
@@ -209,11 +299,11 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
             if (_unityReady && _tileExist == true)
               Positioned(
                 right: 16,
-                top: 0,
-                bottom: 0,
-                child: Center(
+                top: MediaQuery.of(context).size.height / 2 - 50,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 24),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ARHoldButton(
                         icon: Icons.rotate_right,
@@ -225,6 +315,15 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                         icon: Icons.rotate_left,
                         onDown: () => _post('RotateCounterTile'),
                         onUp: () => _post('StopRotatingTile'),
+                      ),
+                      ARIconButton(
+                        icon: _markersVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        onTap: () {
+                          _post('HideMarkers');
+                          setState(() => _markersVisible = !_markersVisible);
+                        },
                       ),
                     ],
                   ),
@@ -260,23 +359,25 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                 bottom: 100,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ARCaptureButton(
-                        onTap: () => {
-                          _post('ConfirmCrosshairPoint'),
-                          _pointCount += 1,
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      ARIconButton(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Capture button — centered
+                    ARCaptureButton(
+                      onTap: () {
+                        _post('ConfirmCrosshairPoint');
+                        setState(() => _pointCount += 1);
+                      },
+                    ),
+                    // Undo button — offset to the right of center
+                    Positioned(
+                      left: MediaQuery.of(context).size.width / 2 + 80,
+                      child: ARIconButton(
                         icon: Icons.undo_outlined,
                         onTap: () => _post('UndoTilePoint'),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 

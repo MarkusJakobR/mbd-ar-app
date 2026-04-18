@@ -51,6 +51,7 @@ public class TilePlacementSystem : MonoBehaviour
     private bool _isTileMode = false;
     private float _tilePrice = 0f;
     private ARPlaneManager _planeManager;
+    private bool _markersVisible = true;
 
     static readonly List<ARRaycastHit> rayHits = new List<ARRaycastHit>();
 
@@ -818,6 +819,31 @@ public class TilePlacementSystem : MonoBehaviour
         _offsetZ = 0f;
 
         Debug.Log("All points and tiles cleared");
+    }
+
+    public void HideMarkers(string message)
+    {
+        _markersVisible = !_markersVisible;
+        HideMarkersForScreenshot(_markersVisible);
+        Debug.Log($"Markers visible: {_markersVisible}");
+    }
+
+    public void HideMarkersForScreenshot(bool visible)
+    {
+        foreach (var marker in cornerMarkers)
+            if (marker != null) marker.SetActive(visible);
+
+        foreach (var line in boundaryLines)
+            if (line != null) line.gameObject.SetActive(visible);
+    }
+
+    public void RestoreMarkersAfterScreenshot()
+    {
+        foreach (var marker in cornerMarkers)
+            if (marker != null) marker.SetActive(_markersVisible);
+
+        foreach (var line in boundaryLines)
+            if (line != null) line.gameObject.SetActive(_markersVisible);
     }
 
     // Editor testing

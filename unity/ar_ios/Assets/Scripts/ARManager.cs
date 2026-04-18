@@ -388,6 +388,20 @@ public class ARManager : MonoBehaviour
             Debug.LogError("ARManager: tilePlacementSystem is NULL");
     }
 
+    public void TakeScreenshotTile(string message)
+    {
+        var uiManager = FindObjectOfType<ARUIManager>();
+        uiManager?.TakeScreenshotTile();
+    }
+
+    public void HideMarkers(string message)
+    {
+        if (tilePlacementSystem != null)
+            tilePlacementSystem.HideMarkers(message);
+        else
+            Debug.LogError("ARManager: tilePlacementSystem is NULL");
+    }
+
     // Flutter button receivers
     public void SwitchToFurnitureMode(string message)
     {
