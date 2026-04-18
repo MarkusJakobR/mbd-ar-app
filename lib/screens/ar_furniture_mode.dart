@@ -6,6 +6,7 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../widgets/ar/ar_widgets.dart';
 import 'dart:io';
+import '../services/tutorial_prefs.dart';
 
 class ARFurnitureMode extends StatefulWidget {
   final Product product;
@@ -33,6 +34,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _checkTutorial();
   }
 
   @override
@@ -54,6 +56,15 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
         break;
       default:
         break;
+    }
+  }
+
+  Future<void> _checkTutorial() async {
+    final hasSeen = await TutorialPrefs.hasSeenFurnitureTutorial();
+    if (!hasSeen && mounted) {
+      // Small delay so Unity has time to render first
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) setState(() => _showTutorial = true);
     }
   }
 
@@ -273,7 +284,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
               onBack: _onBack,
               title: widget.product.name,
               subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
-              onMenuSelected: (value) {
+              onMenuSelected: (value) async {
                 switch (value) {
                   case 'reset':
                     _post('ResetScene');
@@ -285,6 +296,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                     _post('TakeScreenshot');
                     break;
                   case 'help':
+                    await TutorialPrefs.resetFurnitureTutorial();
                     setState(() => _showTutorial = true);
                     break;
                 }
@@ -405,7 +417,10 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
             if (_showTutorial)
               ARTutorial(
                 steps: _buildTutorialSteps(),
-                onComplete: () => setState(() => _showTutorial = false),
+                onComplete: () async {
+                  await TutorialPrefs.markFurnitureTutorialSeen();
+                  if (mounted) setState(() => _showTutorial = false);
+                },
               ),
           ],
         ),

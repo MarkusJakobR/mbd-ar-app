@@ -6,6 +6,8 @@ import '../widgets/ar/ar_widgets.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import '../services/tutorial_prefs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ARTileMode extends StatefulWidget {
   final Product product;
@@ -40,6 +42,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _checkTutorial();
   }
 
   @override
@@ -61,6 +64,15 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
         break;
       default:
         break;
+    }
+  }
+
+  Future<void> _checkTutorial() async {
+    final hasSeen = await TutorialPrefs.hasSeenTileTutorial();
+    if (!hasSeen && mounted) {
+      // Small delay so Unity has time to render first
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) setState(() => _showTutorial = true);
     }
   }
 
@@ -305,7 +317,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               onBack: _onBack,
               title: widget.product.name,
               subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
-              onMenuSelected: (value) {
+              onMenuSelected: (value) async {
                 switch (value) {
                   case 'reset':
                     _post('ClearAll');
@@ -322,8 +334,8 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                     _post('TakeScreenshotTile');
                     break;
                   case 'help':
+                    await TutorialPrefs.resetTileTutorial();
                     setState(() => _showTutorial = true);
-                    // show tutorial later
                     break;
                 }
               },
@@ -470,7 +482,10 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
             if (_showTutorial)
               ARTutorial(
                 steps: _buildTutorialSteps(),
-                onComplete: () => setState(() => _showTutorial = false),
+                onComplete: () async {
+                  await TutorialPrefs.markTileTutorialSeen();
+                  if (mounted) setState(() => _showTutorial = false);
+                },
               ),
           ],
         ),
