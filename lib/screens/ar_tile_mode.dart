@@ -316,6 +316,8 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                         onDown: () => _post('RotateCounterTile'),
                         onUp: () => _post('StopRotatingTile'),
                       ),
+                      const SizedBox(height: 12),
+
                       ARIconButton(
                         icon: _markersVisible
                             ? Icons.visibility_outlined
