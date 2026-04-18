@@ -70,8 +70,9 @@ class ARTileInfoCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 16,
+              runSpacing: 12,
               children: [
                 _InfoColumn(label: 'Estimated tiles', value: _tileCountText),
                 if (minTotalCost > 0)
@@ -112,7 +113,7 @@ class _InfoColumn extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Color(0xFF2C2A6D),
           ),
