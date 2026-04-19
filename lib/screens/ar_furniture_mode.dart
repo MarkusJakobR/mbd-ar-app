@@ -372,7 +372,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
 
             if (_isLoading) ARLoadingBox(),
 
-            if (_unityReady && !_objectSelected)
+            if (_unityReady && !_objectSelected && !_isLoading)
               Positioned(
                 top: 200,
                 left: 0,
@@ -439,7 +439,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                   ),
                 ),
               ),
-            if (_showTutorial)
+            if (_showTutorial && !_isLoading)
               ARTutorial(
                 steps: _buildTutorialSteps(),
                 onComplete: () async {

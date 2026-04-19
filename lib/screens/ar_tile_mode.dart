@@ -455,7 +455,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               ),
 
             // Tile mode instruction overlay
-            if (_unityReady && _pointCount == 0)
+            if (_unityReady && _pointCount == 0 && !_isLoading)
               Positioned(
                 top: 200,
                 left: 0,
@@ -479,7 +479,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-            if (_unityReady && _tileExist == false)
+            if (_unityReady && _tileExist == false && !_isLoading)
               Positioned(
                 bottom: 100,
                 left: 0,
@@ -519,7 +519,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                 totalArea: _totalArea,
               ),
 
-            if (_showTutorial)
+            if (_showTutorial && !_isLoading)
               ARTutorial(
                 steps: _buildTutorialSteps(),
                 onComplete: () async {
