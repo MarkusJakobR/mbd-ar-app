@@ -125,6 +125,9 @@ public class ARManager : MonoBehaviour
         {
             Debug.LogError("Catalog loaded but result is null");
             Addressables.Release(catalogHandle);
+            isInitialized = true; // still mark as initialized
+            SendToFlutter("OnUnityReady");
+            SendToFlutter("AssetsFailed");
             yield break;
         }
 
@@ -161,6 +164,7 @@ public class ARManager : MonoBehaviour
         if (!isInitialized)
         {
             Debug.LogWarning("Addressables not ready yet");
+            SendToFlutter("AssetsFailed");
             return;
         }
 
