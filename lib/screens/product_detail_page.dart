@@ -37,12 +37,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             favoritesService: widget.favoritesService,
             size: 24,
           ),
-          IconButton(
-            icon: const Icon(Icons.share, color: Colors.black),
-            onPressed: () {
-              // TODO: Share product
-            },
-          ),
         ],
       ),
       body: Column(
