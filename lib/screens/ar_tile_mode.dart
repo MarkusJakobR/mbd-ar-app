@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../services/texture_cache_service.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../models/product.dart';
 import '../widgets/ar/ar_widgets.dart';
@@ -238,10 +239,21 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
     }
   }
 
-  void _sendTileToUnity() {
+  void _sendTileToUnity() async {
     if (_unityController == null) return;
-    final message = jsonEncode(widget.product.toUnityMessage());
-    print('Sending tile to Unity: $message');
+
+    final textureUrl = widget.product.modelUrl;
+
+    final localPath = await TextureCacheService.getOrDownload(textureUrl);
+
+    final resolvedUrl = localPath ?? textureUrl;
+
+    final message = jsonEncode({
+      ...widget.product.toUnityMessage(),
+      'textureUrl': resolvedUrl, // override with local path if cached
+    });
+
+    print('Sending tile to Unity: $resolvedUrl');
     _unityController!.postMessage('ARManager', 'OnTileSelected', message);
   }
 

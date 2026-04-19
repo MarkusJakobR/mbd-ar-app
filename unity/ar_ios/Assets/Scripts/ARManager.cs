@@ -194,7 +194,9 @@ public class ARManager : MonoBehaviour
     {
         Debug.Log("Downloading tile texture from: " + url);
 
-        using (var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(url))
+        string requestUrl = url.StartsWith("/") ? $"file://{url}" : url;
+
+        using (var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(requestUrl))
         {
             yield return request.SendWebRequest();
 
