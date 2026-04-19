@@ -6,11 +6,13 @@ import '../widgets/product_grid.dart';
 class FavoritesPage extends StatefulWidget {
   final List<Product> allProducts;
   final FavoritesService favoritesService;
+  final bool favoritesReady;
 
   const FavoritesPage({
     super.key,
     required this.allProducts,
     required this.favoritesService,
+    required this.favoritesReady,
   });
 
   @override
@@ -34,10 +36,22 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 
   Future<void> _loadFavorites() async {
+    if (!widget.favoritesReady) return;
+    if (widget.allProducts.isEmpty) return;
+
     final favorites = await widget.favoritesService.getFavoriteProducts(
       widget.allProducts,
     );
     if (mounted) setState(() => _favorites = favorites);
+  }
+
+  @override
+  void didUpdateWidget(FavoritesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((!oldWidget.favoritesReady && widget.favoritesReady) ||
+        (oldWidget.allProducts.isEmpty && widget.allProducts.isNotEmpty)) {
+      _loadFavorites();
+    }
   }
 
   @override
@@ -48,7 +62,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
         title: const Text('Favorites'),
         automaticallyImplyLeading: false,
       ),
-      body: _favorites.isEmpty ? _buildEmpty() : _buildGrid(),
+      body: !widget.favoritesReady
+          ? const Center(child: CircularProgressIndicator())
+          : _favorites.isEmpty
+          ? _buildEmpty()
+          : _buildGrid(),
     );
   }
 

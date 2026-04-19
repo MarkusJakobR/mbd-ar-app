@@ -17,6 +17,7 @@ class _MainNavState extends State<MainNav> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   List<Product> _sharedProducts = [];
   bool _showSplash = true;
+  bool _favoritesReady = false;
   final _favoritesService = FavoritesService();
 
   late AnimationController _animationController;
@@ -26,8 +27,7 @@ class _MainNavState extends State<MainNav> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _favoritesService.init();
-
+    _initFavorites();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -40,6 +40,11 @@ class _MainNavState extends State<MainNav> with SingleTickerProviderStateMixin {
             curve: Curves.easeInOutExpo,
           ),
         );
+  }
+
+  Future<void> _initFavorites() async {
+    await _favoritesService.init();
+    if (mounted) setState(() => _favoritesReady = true);
   }
 
   @override
@@ -81,6 +86,7 @@ class _MainNavState extends State<MainNav> with SingleTickerProviderStateMixin {
               FavoritesPage(
                 allProducts: _sharedProducts,
                 favoritesService: _favoritesService,
+                favoritesReady: _favoritesReady,
               ),
             ],
           ),

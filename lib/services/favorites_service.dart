@@ -5,11 +5,14 @@ import 'database_service.dart';
 class FavoritesService extends ChangeNotifier {
   final _db = DatabaseService();
   Set<String> _favoriteIds = {};
+  bool _isInitialized = false;
 
   Set<String> get favoriteIds => _favoriteIds;
+  bool get isInitialized => _isInitialized;
 
   Future<void> init() async {
     _favoriteIds = await _db.getFavoriteIds();
+    _isInitialized = true;
     notifyListeners();
   }
 
