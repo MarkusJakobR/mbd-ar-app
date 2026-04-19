@@ -47,7 +47,6 @@ public class TilePlacementSystem : MonoBehaviour
     private GameObject _crosshairSphere;
     private LineRenderer _crosshairRing;
     private Vector3 _crosshairWorldPoint;
-    private bool _crosshairVisible = false;
     private bool _isTileMode = false;
     private float _tilePrice = 0f;
     private ARPlaneManager _planeManager;
@@ -194,14 +193,6 @@ public class TilePlacementSystem : MonoBehaviour
         if (!active && _crosshairRoot != null)
         {
             _crosshairRoot.SetActive(false);
-        }
-
-        if (_planeManager != null)
-        {
-            foreach (var plane in _planeManager.trackables)
-            {
-                plane.gameObject.SetActive(!active);
-            }
         }
     }
 
