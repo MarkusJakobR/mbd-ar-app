@@ -125,6 +125,9 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
       case 'AssetsReady':
         if (mounted) setState(() => _assetsReady = true);
         break;
+      case 'AssetsFailed':
+        _showLoadFailedDialog();
+        break;
       case 'ObjectSelected':
         if (mounted) {
           setState(() {
@@ -226,6 +229,21 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
+  }
+
+  void _showLoadFailedDialog() {
+    if (!mounted) return;
+    ARLoadFailedDialog.show(
+      context,
+      onBack: () {
+        Navigator.pop(context); // close dialog
+        Navigator.pop(context); // go back
+      },
+      onRetry: () {
+        Navigator.pop(context);
+        _sendProductToUnity();
+      },
+    );
   }
 
   List<TutorialStep> _buildTutorialSteps() {

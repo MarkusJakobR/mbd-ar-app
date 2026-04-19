@@ -246,15 +246,36 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
 
     final localPath = await TextureCacheService.getOrDownload(textureUrl);
 
-    final resolvedUrl = localPath ?? textureUrl;
+    // final resolvedUrl = localPath ?? textureUrl;
+
+    if (localPath == null) {
+      // No cache and download failed
+      _showLoadFailedDialog();
+      return;
+    }
 
     final message = jsonEncode({
       ...widget.product.toUnityMessage(),
-      'textureUrl': resolvedUrl, // override with local path if cached
+      'textureUrl': localPath, // override with local path if cached
     });
 
-    print('Sending tile to Unity: $resolvedUrl');
+    print('Sending tile to Unity: $localPath');
     _unityController!.postMessage('ARManager', 'OnTileSelected', message);
+  }
+
+  void _showLoadFailedDialog() {
+    if (!mounted) return;
+    ARLoadFailedDialog.show(
+      context,
+      onBack: () {
+        Navigator.pop(context); // close dialog
+        Navigator.pop(context); // go back
+      },
+      onRetry: () {
+        Navigator.pop(context);
+        _sendTileToUnity(); // or _sendProductToUnity() for furniture
+      },
+    );
   }
 
   List<TutorialStep> _buildTutorialSteps() {

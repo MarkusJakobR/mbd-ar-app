@@ -6,3 +6,4 @@ export 'ar_top_bar.dart';
 export 'ar_tile_info_card.dart';
 export 'ar_loading_box.dart';
 export 'ar_tutorial.dart';
+export 'ar_load_failed_dialog.dart';

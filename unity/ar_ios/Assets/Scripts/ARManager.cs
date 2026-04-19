@@ -186,7 +186,7 @@ public class ARManager : MonoBehaviour
         {
             Debug.LogError("Failed to load prefab: " + key);
             Addressables.Release(handle);
-            SendToFlutter("AssetsReady");
+            SendToFlutter("AssetsFailed");
         }
     }
 
