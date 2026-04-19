@@ -61,51 +61,23 @@ public class TilePlacementSystem : MonoBehaviour
 
     void Update()
     {
-        HandleTouchInput();
         UpdateCrosshair();
         if (tilePlane != null)
         {
             HandleTileTouch();
         }
 
-        // Editor testing: Press T to add test points
-        if (Application.isEditor && Input.GetKeyDown(KeyCode.T))
-        {
-            AddTestPoint();
-        }
-
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            ClearAll();
-        }
-
-        // Press R to rotate tiles (for testing)
-        if (Input.GetKey(KeyCode.R) && tilePlane != null)
-        {
-            degrees = 30f * Time.deltaTime;
-            RotateTiles(degrees); // Rotate by 45 degrees
-        }
-
         if (_rotatingClockwise)
         {
-            Debug.Log("Rotating tile clockwise");
             degrees = 30f * Time.deltaTime;
             RotateTiles(degrees);
         }
 
         if (_rotatingCounter)
         {
-            Debug.Log("Rotating tile counter clockwise");
             degrees = -30f * Time.deltaTime;
             RotateTiles(degrees);
         }
-
-        float offsetSpeed = 0.5f * Time.deltaTime;
-        if (Input.GetKey(KeyCode.UpArrow)) MoveTileOffset(0, offsetSpeed);
-        if (Input.GetKey(KeyCode.DownArrow)) MoveTileOffset(0, -offsetSpeed);
-        if (Input.GetKey(KeyCode.LeftArrow)) MoveTileOffset(-offsetSpeed, 0);
-        if (Input.GetKey(KeyCode.RightArrow)) MoveTileOffset(offsetSpeed, 0);
-
     }
 
     void HandleTileTouch()
@@ -157,31 +129,6 @@ public class TilePlacementSystem : MonoBehaviour
                 float delta = currentAngle - _previousPinchAngle;
                 RotateTiles(delta);
                 _previousPinchAngle = currentAngle;
-            }
-        }
-    }
-
-    // remove this function later
-    void HandleTouchInput()
-    {
-        if (Application.isMobilePlatform)
-        {
-            if (Input.touchCount == 1)
-            {
-                Touch touch = Input.GetTouch(0);
-
-                if (touch.phase == TouchPhase.Began)
-                {
-                    // TryPlaceCornerPoint(touch.position);
-                }
-            }
-        }
-        else
-        {
-            // Mouse for editor
-            if (Input.GetMouseButtonDown(0) && raycastManager != null)
-            {
-                TryPlaceCornerPoint(Input.mousePosition);
             }
         }
     }
@@ -315,10 +262,7 @@ public class TilePlacementSystem : MonoBehaviour
             tileMaterial.SetFloat("_TileHeight", tileHeight);
             tileMaterial.SetFloat("_TileWidth", tileWidth);
             tileMaterial.SetFloat("_TileHeight", tileHeight);
-            Debug.Log($"Tile texture updated live: {width}x{length}m");
         }
-
-        Debug.Log($"Tile texture set: {width}x{length}m");
     }
 
     void TryPlaceCornerPoint(Vector2 screenPosition)
@@ -352,7 +296,6 @@ public class TilePlacementSystem : MonoBehaviour
         GameObject marker = CreateCornerMarker(worldPosition);
         cornerMarkers.Add(marker);
 
-        Debug.Log($"Added corner point {cornerPoints.Count}: {worldPosition}");
 
         // Draw boundary line from previous point
         if (cornerPoints.Count > 1)
@@ -425,14 +368,10 @@ public class TilePlacementSystem : MonoBehaviour
 
     void CreateTileArea()
     {
-        Debug.Log("=== CREATING TILE AREA ===");
-
         List<Vector3> sortedPoints = SortPointsClockwise(cornerPoints);
         Bounds bounds = CalculateTightBounds(sortedPoints);
         Vector3 center = bounds.center;
         Vector2 size = new Vector2(bounds.size.x, bounds.size.z);
-
-        Debug.Log($"Bounding box - Center: {center}, Size: {size.x:F2}m x {size.y:F2}m");
 
         tilePlane = new GameObject("TilePlane");
         tilePlane.transform.position = center;
@@ -449,8 +388,6 @@ public class TilePlacementSystem : MonoBehaviour
         meshRenderer.material = tileMaterial;
 
         CalculateAndReportTileCount(sortedPoints);
-
-        Debug.Log("=== TILE AREA CREATION COMPLETE ===");
     }
 
     Bounds CalculateTightBounds(List<Vector3> points)
@@ -525,7 +462,6 @@ public class TilePlacementSystem : MonoBehaviour
 
         if (clipShader == null)
         {
-            Debug.LogError("TileClipShader not found!");
             clipShader = Shader.Find("Universal Render Pipeline/Lit");
         }
 
@@ -556,8 +492,6 @@ public class TilePlacementSystem : MonoBehaviour
 
         // Apply current rotation
         ApplyRotationToMaterial(material, currentRotation);
-
-        Debug.Log($"Material created, tiling: {tileWidth:F2} x {tileHeight:F2}, rotation: {currentRotation}°");
 
         return material;
     }
@@ -599,8 +533,6 @@ public class TilePlacementSystem : MonoBehaviour
         // Show crosshair again since we're back to placing points
         if (_crosshairRoot != null && _isTileMode)
             _crosshairRoot.SetActive(true);
-
-        Debug.Log($"Undo — points remaining: {cornerPoints.Count}");
     }
 
     public void StartRotatingTile(bool clockwise)
@@ -627,8 +559,6 @@ public class TilePlacementSystem : MonoBehaviour
         currentRotation = currentRotation % 360f; // Keep between 0-360
 
         ApplyRotationToMaterial(tileMaterial, currentRotation);
-
-        Debug.Log($"Tiles rotated to {currentRotation}°");
     }
 
     public void StopRotatingTile()
@@ -674,12 +604,6 @@ public class TilePlacementSystem : MonoBehaviour
             return Mathf.Atan2(direction.z, direction.x);
         }).ToList();
 
-        Debug.Log("Points sorted in clockwise order:");
-        for (int i = 0; i < sorted.Count; i++)
-        {
-            Debug.Log($"  Point {i}: {sorted[i]}");
-        }
-
         return sorted;
     }
 
@@ -696,8 +620,6 @@ public class TilePlacementSystem : MonoBehaviour
 
     Texture2D CreateTileTexture()
     {
-        Debug.Log("Creating tile texture...");
-
         int texSize = 128;
         Texture2D tex = new Texture2D(texSize, texSize);
 
@@ -721,8 +643,6 @@ public class TilePlacementSystem : MonoBehaviour
         tex.Apply();
         tex.filterMode = FilterMode.Bilinear;
         tex.wrapMode = TextureWrapMode.Repeat;
-
-        Debug.Log("Tile texture created and applied");
 
         return tex;
     }
@@ -808,15 +728,12 @@ public class TilePlacementSystem : MonoBehaviour
         currentRotation = 0f;
         _offsetX = 0f;
         _offsetZ = 0f;
-
-        Debug.Log("All points and tiles cleared");
     }
 
     public void HideMarkers(string message)
     {
         _markersVisible = !_markersVisible;
         HideMarkersForScreenshot(_markersVisible);
-        Debug.Log($"Markers visible: {_markersVisible}");
     }
 
     public void HideMarkersForScreenshot(bool visible)
@@ -835,23 +752,5 @@ public class TilePlacementSystem : MonoBehaviour
 
         foreach (var line in boundaryLines)
             if (line != null) line.gameObject.SetActive(_markersVisible);
-    }
-
-    // Editor testing
-    void AddTestPoint()
-    {
-        // Add test points in a square pattern
-        Vector3[] testPoints = new Vector3[]
-        {
-            new Vector3(0, 0, 0),
-            new Vector3(2, 0, 0),
-            new Vector3(2, 0, 2),
-            new Vector3(0, 0, 2.5f)
-        };
-
-        if (cornerPoints.Count < 4)
-        {
-            AddCornerPoint(testPoints[cornerPoints.Count]);
-        }
     }
 }

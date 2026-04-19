@@ -54,7 +54,6 @@ public class ARPlaceFurniture : MonoBehaviour
         if (!raycastManager) return;
 
         HandleTouch();
-        HandleMouseFallback();
 
         // Smoothly move the object toward the target position (avoids glitch snapping)
         if (_selector != null && _selector.HasSelection && isDragging)
@@ -82,21 +81,17 @@ public class ARPlaceFurniture : MonoBehaviour
                 if (_rotatingClockwise)
                 {
 
-                    Debug.Log("Update: Rotating clockwise NOW");
                     _selector.SelectedObject.transform.Rotate(
                         Vector3.up, 100f * Time.deltaTime * rotationSpeed, Space.World);
                 }
                 if (_rotatingCounter)
                 {
-                    Debug.Log("Update: Rotating counter NOW");
                     _selector.SelectedObject.transform.Rotate(
                         Vector3.up, -100f * Time.deltaTime * rotationSpeed, Space.World);
                 }
             }
             else
             {
-                Debug.Log("Update: Object is LOCKED, cannot rotate");
-
             }
         }
     }
@@ -175,58 +170,6 @@ public class ARPlaceFurniture : MonoBehaviour
         }
     }
 
-    void HandleMouseFallback()
-    {
-        // Editor / desktop testing only
-        if (Input.GetMouseButtonDown(0))
-        {
-            // Check if clicking on UI first
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-                return;
-
-            var hitObject = GetTouchedObject(Input.mousePosition);
-
-            if (hitObject != null)
-            {
-                _selector.Select(hitObject);
-                _isDraggingObject = true;
-            }
-            else
-            {
-                if (_selector.HasSelection)
-                    _selector.Deselect();
-                else if (!_hasPlacedFirstObject)
-                    TryPlaceObject(Input.mousePosition);
-            }
-        }
-
-        if (Input.GetMouseButton(0) && _isDraggingObject)
-        {
-            if (_selector.HasSelection)
-                TryMoveSelected(Input.mousePosition);
-        }
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            _isDraggingObject = false;
-            isDragging = false;
-        }
-
-        // Keyboard rotation — acts on selected object
-        if (_selector != null && _selector.HasSelection)
-        {
-            var lockComp = _selector.SelectedObject.GetComponent<FurnitureLock>();
-            bool isLocked = lockComp != null && lockComp.IsLocked;
-
-            if (Input.GetKey(KeyCode.R))
-                _selector.SelectedObject.transform.Rotate(
-                    Vector3.up, rotationSpeed * 100f * Time.deltaTime, Space.World);
-            if (Input.GetKey(KeyCode.T))
-                _selector.SelectedObject.transform.Rotate(
-                    Vector3.up, -rotationSpeed * 100f * Time.deltaTime, Space.World);
-        }
-    }
-
     void TryRaycast(Vector2 screenPosition)
     {
         // Don't raycast if no prefab is loaded yet
@@ -237,11 +180,8 @@ public class ARPlaceFurniture : MonoBehaviour
             var hit = rayHits[0];
             FurnitureData data = furniturePrefab.GetComponent<FurnitureData>();
 
-            Debug.Log($"TryRaycast — FurnitureData placementType: {data?.placementType}");
-
             if (data != null && !IsHitOnCorrectPlane(hit, data.placementType))
             {
-                Debug.Log("TryRaycast — rejected, wrong plane");
                 return;
             }
 
@@ -252,10 +192,7 @@ public class ARPlaceFurniture : MonoBehaviour
                 spawnedObject = Instantiate(furniturePrefab, hitPose.position, Quaternion.identity);
 
                 var spawnedData = spawnedObject.GetComponent<FurnitureData>();
-                Debug.Log($"TryRaycast — spawned object placementType: {spawnedData?.placementType}");
-
                 var validator = spawnedObject.GetComponent<FurniturePlacementValidator>();
-                Debug.Log($"TryRaycast — FurniturePlacementValidator: {(validator != null ? "FOUND" : "NULL")}");
 
                 ApplyWallRotationIfNeeded(hitPose, spawnedObject);
                 targetPosition = hitPose.position;
@@ -287,15 +224,9 @@ public class ARPlaceFurniture : MonoBehaviour
         {
             var data = newPrefab.GetComponent<FurnitureData>();
 
-            Debug.Log($"SetFurniturePrefab — received placementType: {placementType}");
-            Debug.Log($"SetFurniturePrefab — FurnitureData on prefab: {(data != null ? "FOUND" : "NULL")}");
-
             if (data != null && System.Enum.TryParse<FurniturePlacementType>(placementType, out var parsed))
             {
                 data.placementType = parsed;
-                Debug.Log($"SetFurniturePrefab — placementType set to: {data.placementType}");
-
-                // activePlaneType = TrackableType.PlaneWithinPolygon;
             }
             else
             {
@@ -309,7 +240,6 @@ public class ARPlaceFurniture : MonoBehaviour
 
         // Notify visibility manager
         FurnitureData furnitureData = newPrefab.GetComponent<FurnitureData>();
-        Debug.Log($"SetFurniturePrefab — final placementType on prefab: {furnitureData?.placementType}");
 
         if (furnitureData != null && planeVisibilityManager != null)
             planeVisibilityManager.SetPlacementType(furnitureData.placementType);
@@ -341,8 +271,6 @@ public class ARPlaceFurniture : MonoBehaviour
 
     public void ClearScene()
     {
-
-
         foreach (var obj in _placedObjects)
         {
             if (obj != null) Destroy(obj);
@@ -441,27 +369,21 @@ public class ARPlaceFurniture : MonoBehaviour
 
     public void DuplicateSelected()
     {
-        Debug.Log("=== DuplicateSelected START ===");
-
         // Prevent re-entry
         if (_isDuplicating)
         {
-            Debug.LogWarning("DuplicateSelected already in progress - ignoring");
             return;
         }
 
         _isDuplicating = true;
-        Debug.Log($"_placedObjects count BEFORE: {_placedObjects.Count}");
 
         if (!_selector.HasSelection)
         {
-            Debug.Log("No selection, aborting");
             _isDuplicating = false;
             return;
         }
 
         var original = _selector.SelectedObject;
-        Debug.Log($"Duplicating: {original.name}");
 
         var duplicate = Instantiate(
             original,
@@ -469,34 +391,25 @@ public class ARPlaceFurniture : MonoBehaviour
             original.transform.rotation
         );
 
-        Debug.Log($"Instantiated: {duplicate.name}");
-
         // Remove ALL components that might have been copied
         var existingIndicator = duplicate.GetComponent<SelectionIndicator>();
         if (existingIndicator != null)
         {
-            Debug.Log("Destroying existing SelectionIndicator");
             Destroy(existingIndicator);
         }
 
         var existingLock = duplicate.GetComponent<FurnitureLock>();
         if (existingLock != null)
         {
-            Debug.Log("Destroying existing FurnitureLock");
             Destroy(existingLock);
         }
 
         // Add fresh components
         duplicate.AddComponent<SelectionIndicator>();
         duplicate.AddComponent<FurnitureLock>();
-        Debug.Log("Added fresh components");
 
         // Track it properly
         _placedObjects.Add(duplicate);
-        Debug.Log($"_placedObjects count AFTER: {_placedObjects.Count}");
-
-        Debug.Log("=== DuplicateSelected END ===");
-
         _isDuplicating = false;
     }
 
@@ -509,32 +422,25 @@ public class ARPlaceFurniture : MonoBehaviour
         }
 
         _isResetting = true;
-        Debug.Log("=== ResetScene START ===");
         ClearScene();
-        Debug.Log("=== ResetScene END ===");
         _isResetting = false;
     }
 
     public void StartRotating(bool clockwise)
     {
-        Debug.Log($"ARPlaceFurniture: StartRotating called with clockwise={clockwise}");
         if (clockwise)
         {
             _rotatingClockwise = true;
-            Debug.Log("ARPlaceFurniture: _rotatingClockwise set to TRUE");
         }
         else
         {
             _rotatingCounter = true;
-            Debug.Log("ARPlaceFurniture: _rotatingCounter set to TRUE");
         }
     }
 
     public void StopRotating()
     {
-        Debug.Log("ARPlaceFurniture: StopRotating called");
         _rotatingClockwise = false;
         _rotatingCounter = false;
-        Debug.Log("ARPlaceFurniture: Both rotation flags set to FALSE");
     }
 }

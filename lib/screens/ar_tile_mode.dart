@@ -20,6 +20,10 @@ class ARTileMode extends StatefulWidget {
 class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   UnityWidgetController? _unityController;
   bool _unityReady = false;
+  bool _assetsReady = false;
+
+  bool get _isLoading => !_unityReady || !_assetsReady;
+
   int _minTileCount = 0;
   int _maxTileCount = 0;
   int _pointCount = 0;
@@ -140,6 +144,9 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
           setState(() => _unityReady = true);
           _sendTileToUnity();
         }
+        break;
+      case 'AssetsReady':
+        if (mounted) setState(() => _assetsReady = true);
         break;
       default:
         if (msg.startsWith('TileCount:')) {
@@ -374,7 +381,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               ],
             ),
 
-            if (!_unityReady) ARLoadingBox(),
+            if (_isLoading) ARLoadingBox(),
 
             if ((_unityReady && _tileExist) || _showTutorial)
               Positioned(

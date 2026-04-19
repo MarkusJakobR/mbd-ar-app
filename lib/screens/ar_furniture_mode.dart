@@ -26,6 +26,10 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
   final GlobalKey _menuKey = GlobalKey();
   final GlobalKey _hintKey = GlobalKey();
   bool _unityReady = false;
+  bool _assetsReady = false;
+
+  bool get _isLoading => !_unityReady || !_assetsReady;
+
   bool _objectSelected = false;
   bool _isLocked = false;
   bool _showTutorial = false;
@@ -117,6 +121,9 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
           setState(() => _unityReady = true);
           _sendProductToUnity();
         }
+        break;
+      case 'AssetsReady':
+        if (mounted) setState(() => _assetsReady = true);
         break;
       case 'ObjectSelected':
         if (mounted) {
@@ -345,7 +352,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
               ],
             ),
 
-            if (!_unityReady) ARLoadingBox(),
+            if (_isLoading) ARLoadingBox(),
 
             if (_unityReady && !_objectSelected)
               Positioned(

@@ -18,7 +18,6 @@ public class ARManager : MonoBehaviour
     [SerializeField] private ARPlaceFurniture placeFurniture;
     [SerializeField] private TilePlacementSystem tilePlacementSystem;
     [SerializeField] private bool useLocalPrefabForTesting = true;
-    [SerializeField] private string editorTestKey = "brown_cabinet";
 
     private bool isInitialized = false;
     private ARObjectSelector _selector;
@@ -70,7 +69,6 @@ public class ARManager : MonoBehaviour
                     placeFurniture.enabled = true;
 
 
-                Debug.Log("Switched to Furniture mode");
                 SendToFlutter("ModeChanged:Furniture");
                 break;
 
@@ -94,7 +92,6 @@ public class ARManager : MonoBehaviour
                     tilePlacementSystem.enabled = true;
                 }
 
-                Debug.Log("Switched to Tile mode");
                 SendToFlutter("ModeChanged:Tile");
                 break;
         }
@@ -160,11 +157,6 @@ public class ARManager : MonoBehaviour
 
     public void OnProductSelected(string jsonMessage)
     {
-        if (useLocalPrefabForTesting)
-        {
-            Debug.Log("Testing mode — using Inspector prefab");
-            return;
-        }
 
         if (!isInitialized)
         {
@@ -188,11 +180,13 @@ public class ARManager : MonoBehaviour
         {
             Debug.Log("Prefab loaded: " + key);
             placeFurniture.SetFurniturePrefab(handle.Result, placementType);
+            SendToFlutter("AssetsReady");
         }
         else
         {
             Debug.LogError("Failed to load prefab: " + key);
             Addressables.Release(handle);
+            SendToFlutter("AssetsReady");
         }
     }
 
@@ -209,10 +203,12 @@ public class ARManager : MonoBehaviour
                 Texture2D texture = UnityEngine.Networking.DownloadHandlerTexture.GetContent(request);
                 tilePlacementSystem.SetTileTexture(texture, width, length);
                 Debug.Log("Tile texture downloaded successfully");
+                SendToFlutter("AssetsReady");
             }
             else
             {
                 Debug.LogError($"Failed to download tile texture: {request.error}");
+                SendToFlutter("AssetsReady");
             }
         }
     }
@@ -420,56 +416,6 @@ public class ARManager : MonoBehaviour
         if (tilePlacementSystem != null)
         {
             tilePlacementSystem.ClearAll();
-        }
-    }
-
-    void Update()
-    {
-        if (!useLocalPrefabForTesting && isInitialized)
-        {
-            if (Input.GetKeyDown(KeyCode.L))
-                StartCoroutine(LoadPrefabByKey(editorTestKey));
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                string fakeMessage = JsonUtility.ToJson(new ProductMessage
-                {
-                    productId = "test-001",
-                    name = "Test Cabinet",
-                    addressableKey = editorTestKey,
-                    placementType = "HorizontalOnly",
-                    category = "furniture"
-                });
-                OnProductSelected(fakeMessage);
-            }
-        }
-
-        // Press M to toggle between Furniture and Tile mode
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            if (currentMode == ARMode.Furniture)
-            {
-                Debug.Log("Switching to Tile Mode (Editor Test)");
-                SetMode(ARMode.Tile);
-            }
-            else
-            {
-                Debug.Log("Switching to Furniture Mode (Editor Test)");
-                SetMode(ARMode.Furniture);
-            }
-        }
-
-        // Press F to force Furniture mode
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            Debug.Log("Force Furniture Mode");
-            SetMode(ARMode.Furniture);
-        }
-
-        // Press G to force Tile mode  
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            Debug.Log("Force Tile Mode");
-            SetMode(ARMode.Tile);
         }
     }
 
