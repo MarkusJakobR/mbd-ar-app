@@ -127,7 +127,7 @@ public class TilePlacementSystem : MonoBehaviour
             else if (t0.phase == TouchPhase.Moved || t1.phase == TouchPhase.Moved)
             {
                 float delta = currentAngle - _previousPinchAngle;
-                RotateTiles(delta);
+                RotateTiles(-delta);
                 _previousPinchAngle = currentAngle;
             }
         }
@@ -386,6 +386,8 @@ public class TilePlacementSystem : MonoBehaviour
 
         tileMaterial = CreateClippedTileMaterial(size, sortedPoints, center);
         meshRenderer.material = tileMaterial;
+        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        meshRenderer.receiveShadows = false;
 
         CalculateAndReportTileCount(sortedPoints);
     }
