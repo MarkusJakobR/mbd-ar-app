@@ -17,12 +17,12 @@ public class ARManager : MonoBehaviour
 
     [SerializeField] private ARPlaceFurniture placeFurniture;
     [SerializeField] private TilePlacementSystem tilePlacementSystem;
-    [SerializeField] private bool useLocalPrefabForTesting = true;
 
     private bool isInitialized = false;
     private ARObjectSelector _selector;
     private UnityMessageManager _messageManager;
     private ARMode currentMode = ARMode.Furniture;
+    private ProductMessage _pendingProduct = null;
 
     void Start()
     {
@@ -41,10 +41,7 @@ public class ARManager : MonoBehaviour
             _selector.OnObjectDeselected += () => SendToFlutter("ObjectDeselected");
         }
 
-        if (!useLocalPrefabForTesting)
-            StartCoroutine(InitializeAddressables());
-        else
-            StartCamera();
+        StartCoroutine(InitializeAddressablesCoroutine());
     }
 
     // Mode switching
@@ -110,7 +107,13 @@ public class ARManager : MonoBehaviour
         SendToFlutter($"LockState:{isLocked.ToString().ToLower()}");
     }
 
-    IEnumerator InitializeAddressables()
+    public void InitializeAddressables(string message)
+    {
+        if (!isInitialized)
+            StartCoroutine(InitializeAddressablesCoroutine());
+    }
+
+    IEnumerator InitializeAddressablesCoroutine()
     {
         Debug.Log("Initializing Addressables...");
         yield return Addressables.InitializeAsync();
@@ -136,6 +139,12 @@ public class ARManager : MonoBehaviour
         isInitialized = true;
 
         SendToFlutter("OnUnityReady");
+
+        if (_pendingProduct != null)
+        {
+            _LoadProduct(_pendingProduct);
+            _pendingProduct = null;
+        }
     }
 
     public void OnTileSelected(string jsonMessage)
@@ -161,16 +170,21 @@ public class ARManager : MonoBehaviour
     public void OnProductSelected(string jsonMessage)
     {
 
+        var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
         if (!isInitialized)
         {
             Debug.LogWarning("Addressables not ready yet");
-            SendToFlutter("AssetsFailed");
+            _pendingProduct = data;
             return;
         }
 
+        _LoadProduct(data);
+    }
+
+    void _LoadProduct(ProductMessage data)
+    {
         placeFurniture.ClearScene();
-        var data = JsonUtility.FromJson<ProductMessage>(jsonMessage);
-        Debug.Log($"Product selected: {data.name} | key: {data.addressableKey} | placement: {data.placementType}");
+        Debug.Log($"Product selected: {data.name} | key: {data.addressableKey}");
         StartCoroutine(LoadPrefabByKey(data.addressableKey, data.placementType));
     }
 

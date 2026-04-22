@@ -20,6 +20,8 @@ class ARTileMode extends StatefulWidget {
 
 class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   UnityWidgetController? _unityController;
+  Future<String?>? _textureFuture;
+
   bool _unityReady = false;
   bool _assetsReady = false;
 
@@ -48,6 +50,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _textureFuture = TextureCacheService.getOrDownload(widget.product.modelUrl);
     _checkTutorial();
   }
 
@@ -245,9 +248,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   void _sendTileToUnity() async {
     if (_unityController == null) return;
 
-    final textureUrl = widget.product.modelUrl;
-
-    final localPath = await TextureCacheService.getOrDownload(textureUrl);
+    final localPath = await _textureFuture;
 
     // final resolvedUrl = localPath ?? textureUrl;
 

@@ -106,9 +106,15 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
     // Ensure we're in furniture mode
     _post('SwitchToFurnitureMode');
 
+    _post('InitializeAddressables');
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) _sendProductToUnity();
+    });
+
+    // Fallback
     Future.delayed(const Duration(seconds: 5), () {
       if (!_unityReady && mounted) {
-        print('Unity ready timeout — sending product anyway');
         setState(() => _unityReady = true);
         _sendProductToUnity();
       }
