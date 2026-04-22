@@ -27,6 +27,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
   final GlobalKey _hintKey = GlobalKey();
   bool _unityReady = false;
   bool _assetsReady = false;
+  bool _isLeaving = false;
 
   bool get _isLoading => !_unityReady || !_assetsReady;
 
@@ -88,8 +89,11 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
   }
 
   Future<void> _onBack() async {
+    setState(() => _isLeaving = true);
+    _post('ResetScene');
+    await Future.delayed(const Duration(milliseconds: 150));
     _stopCamera();
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 150));
     if (mounted) Navigator.pop(context);
   }
 
@@ -304,73 +308,6 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
               onUnityMessage: onUnityMessage,
               fullscreen: false,
             ),
-            ARTopBar(
-              menuKey: _menuKey,
-              onBack: _onBack,
-              title: widget.product.name,
-              subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
-              onMenuSelected: (value) async {
-                switch (value) {
-                  case 'reset':
-                    _post('ResetScene');
-                    break;
-                  case 'duplicate':
-                    _post('DuplicateSelected');
-                    break;
-                  case 'screenshot':
-                    _post('TakeScreenshot');
-                    break;
-                  case 'help':
-                    await TutorialPrefs.resetFurnitureTutorial();
-                    setState(() => _showTutorial = true);
-                    break;
-                }
-              },
-              menuItems: [
-                PopupMenuItem(
-                  value: 'reset',
-                  child: Row(
-                    children: [
-                      Icon(Icons.refresh, size: 20),
-                      SizedBox(width: 8),
-                      Text('Reset'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'screenshot',
-                  child: Row(
-                    children: [
-                      Icon(Icons.camera_alt_outlined, size: 20),
-                      SizedBox(width: 8),
-                      Text('Screenshot'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'duplicate',
-                  child: Row(
-                    children: [
-                      Icon(Icons.copy_outlined, size: 20),
-                      SizedBox(width: 8),
-                      Text('Duplicate'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'help',
-                  child: Row(
-                    children: [
-                      Icon(Icons.help_outline, size: 20),
-                      SizedBox(width: 8),
-                      Text('Help'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            if (_isLoading) ARLoadingBox(),
 
             if (_unityReady && !_objectSelected && !_isLoading)
               Positioned(
@@ -439,6 +376,73 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                   ),
                 ),
               ),
+            if (_isLeaving) Container(color: Colors.black),
+
+            ARTopBar(
+              menuKey: _menuKey,
+              onBack: _onBack,
+              title: widget.product.name,
+              subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
+              onMenuSelected: (value) async {
+                switch (value) {
+                  case 'reset':
+                    _post('ResetScene');
+                    break;
+                  case 'duplicate':
+                    _post('DuplicateSelected');
+                    break;
+                  case 'screenshot':
+                    _post('TakeScreenshot');
+                    break;
+                  case 'help':
+                    await TutorialPrefs.resetFurnitureTutorial();
+                    setState(() => _showTutorial = true);
+                    break;
+                }
+              },
+              menuItems: [
+                PopupMenuItem(
+                  value: 'reset',
+                  child: Row(
+                    children: [
+                      Icon(Icons.refresh, size: 20),
+                      SizedBox(width: 8),
+                      Text('Reset'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'screenshot',
+                  child: Row(
+                    children: [
+                      Icon(Icons.camera_alt_outlined, size: 20),
+                      SizedBox(width: 8),
+                      Text('Screenshot'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'duplicate',
+                  child: Row(
+                    children: [
+                      Icon(Icons.copy_outlined, size: 20),
+                      SizedBox(width: 8),
+                      Text('Duplicate'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'help',
+                  child: Row(
+                    children: [
+                      Icon(Icons.help_outline, size: 20),
+                      SizedBox(width: 8),
+                      Text('Help'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             if (_showTutorial && !_isLoading)
               ARTutorial(
                 steps: _buildTutorialSteps(),
@@ -447,6 +451,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
                   if (mounted) setState(() => _showTutorial = false);
                 },
               ),
+            if (_isLoading) ARLoadingBox(),
           ],
         ),
       ),

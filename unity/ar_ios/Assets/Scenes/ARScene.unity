@@ -356,7 +356,7 @@ MonoBehaviour:
   groutColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   cornerMarkerPrefab: {fileID: 0}
   lineMaterial: {fileID: 0}
-  markerColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  markerColor: {r: 1, g: 1, b: 1, a: 1}
   markerSize: 0.05
   crosshairRadius: 0.1
   crosshairColor: {r: 1, g: 1, b: 1, a: 1}

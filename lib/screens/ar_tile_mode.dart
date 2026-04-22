@@ -33,6 +33,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   double _totalArea = 0.0;
   bool _tileExist = false;
   bool _markersVisible = true;
+  bool _isLeaving = false;
 
   final GlobalKey _rotateCWKey = GlobalKey();
   final GlobalKey _rotateCCWKey = GlobalKey();
@@ -97,7 +98,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   }
 
   Future<void> _onBack() async {
-    _stopCamera();
+    setState(() => _isLeaving = true);
     _post('ClearAll');
     setState(() {
       _minTileCount = 0;
@@ -107,7 +108,9 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
       _totalArea = 0.0;
       _tileExist = false;
     });
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 150));
+    _stopCamera();
+    await Future.delayed(const Duration(milliseconds: 150));
     if (mounted) Navigator.pop(context);
   }
 
@@ -352,70 +355,6 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
               fullscreen: false,
             ),
 
-            ARTopBar(
-              menuKey: _menuKey,
-              onBack: _onBack,
-              title: widget.product.name,
-              subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
-              onMenuSelected: (value) async {
-                switch (value) {
-                  case 'reset':
-                    _post('ClearAll');
-                    setState(() {
-                      _minTileCount = 0;
-                      _maxTileCount = 0;
-                      _minTotalCost = 0.0;
-                      _maxTotalCost = 0.0;
-                      _totalArea = 0.0;
-                      _tileExist = false;
-                    });
-                    break;
-                  case 'screenshot':
-                    _post('TakeScreenshotTile');
-                    break;
-                  case 'help':
-                    await TutorialPrefs.resetTileTutorial();
-                    setState(() => _showTutorial = true);
-                    break;
-                }
-              },
-              menuItems: [
-                PopupMenuItem(
-                  value: 'reset',
-                  child: Row(
-                    children: [
-                      Icon(Icons.refresh, size: 20),
-                      SizedBox(width: 8),
-                      Text('Reset'),
-                    ],
-                  ),
-                ),
-                if (_tileExist == true)
-                  PopupMenuItem(
-                    value: 'screenshot',
-                    child: Row(
-                      children: [
-                        Icon(Icons.camera_alt_outlined, size: 20),
-                        SizedBox(width: 8),
-                        Text('Screenshot'),
-                      ],
-                    ),
-                  ),
-                PopupMenuItem(
-                  value: 'help',
-                  child: Row(
-                    children: [
-                      Icon(Icons.help_outline, size: 20),
-                      SizedBox(width: 8),
-                      Text('Help'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            if (_isLoading) ARLoadingBox(),
-
             if ((_unityReady && _tileExist) || _showTutorial)
               Positioned(
                 right: 16,
@@ -519,6 +458,70 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                 totalArea: _totalArea,
               ),
 
+            if (_isLeaving) Container(color: Colors.black),
+
+            ARTopBar(
+              menuKey: _menuKey,
+              onBack: _onBack,
+              title: widget.product.name,
+              subtitle: '₱${widget.product.price.toStringAsFixed(2)}',
+              onMenuSelected: (value) async {
+                switch (value) {
+                  case 'reset':
+                    _post('ClearAll');
+                    setState(() {
+                      _minTileCount = 0;
+                      _maxTileCount = 0;
+                      _minTotalCost = 0.0;
+                      _maxTotalCost = 0.0;
+                      _totalArea = 0.0;
+                      _tileExist = false;
+                    });
+                    break;
+                  case 'screenshot':
+                    _post('TakeScreenshotTile');
+                    break;
+                  case 'help':
+                    await TutorialPrefs.resetTileTutorial();
+                    setState(() => _showTutorial = true);
+                    break;
+                }
+              },
+              menuItems: [
+                PopupMenuItem(
+                  value: 'reset',
+                  child: Row(
+                    children: [
+                      Icon(Icons.refresh, size: 20),
+                      SizedBox(width: 8),
+                      Text('Reset'),
+                    ],
+                  ),
+                ),
+                if (_tileExist == true)
+                  PopupMenuItem(
+                    value: 'screenshot',
+                    child: Row(
+                      children: [
+                        Icon(Icons.camera_alt_outlined, size: 20),
+                        SizedBox(width: 8),
+                        Text('Screenshot'),
+                      ],
+                    ),
+                  ),
+                PopupMenuItem(
+                  value: 'help',
+                  child: Row(
+                    children: [
+                      Icon(Icons.help_outline, size: 20),
+                      SizedBox(width: 8),
+                      Text('Help'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
             if (_showTutorial && !_isLoading)
               ARTutorial(
                 steps: _buildTutorialSteps(),
@@ -527,6 +530,8 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
                   if (mounted) setState(() => _showTutorial = false);
                 },
               ),
+
+            if (_isLoading) ARLoadingBox(),
           ],
         ),
       ),

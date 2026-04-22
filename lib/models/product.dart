@@ -76,6 +76,13 @@ class Product {
   String get dimensionsString {
     String format(double v) =>
         v == v.truncateToDouble() ? v.toInt().toString() : v.toString();
+
+    // 2d for tiles
+    if (isTile) {
+      return "${format(width)} x ${format(length)} $unit";
+    }
+
+    // 3d for furniture
     return "${format(width)} x ${format(height)} x ${format(length)} $unit";
   }
 
