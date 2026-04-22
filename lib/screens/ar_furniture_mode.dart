@@ -7,6 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 import '../widgets/ar/ar_widgets.dart';
 import 'dart:io';
 import '../services/tutorial_prefs.dart';
+import '../services/loading_timer.dart';
+import '../services/unity_state.dart';
 
 class ARFurnitureMode extends StatefulWidget {
   final Product product;
@@ -39,6 +41,7 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    LoadingTimer.start();
     _checkTutorial();
   }
 
@@ -106,15 +109,18 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
     // Ensure we're in furniture mode
     _post('SwitchToFurnitureMode');
 
-    _post('InitializeAddressables');
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) _sendProductToUnity();
-    });
+    if (UnityState.isReady) {
+      print('Unity already initialized — skipping wait');
+      LoadingTimer.markUnityReady();
+      setState(() => _unityReady = true);
+      _sendProductToUnity();
+      return;
+    }
 
     // Fallback
     Future.delayed(const Duration(seconds: 5), () {
       if (!_unityReady && mounted) {
+        LoadingTimer.markUnityReady();
         setState(() => _unityReady = true);
         _sendProductToUnity();
       }
@@ -128,11 +134,15 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
     switch (msg) {
       case 'OnUnityReady':
         if (!_unityReady && mounted) {
+          UnityState.isReady = true;
+          LoadingTimer.markUnityReady();
           setState(() => _unityReady = true);
           _sendProductToUnity();
         }
         break;
       case 'AssetsReady':
+        LoadingTimer.markAssetsReady();
+        LoadingTimer.save('Furniture', widget.product.name);
         if (mounted) setState(() => _assetsReady = true);
         break;
       case 'AssetsFailed':

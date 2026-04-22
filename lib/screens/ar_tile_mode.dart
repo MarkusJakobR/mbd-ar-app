@@ -9,6 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import '../services/tutorial_prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/loading_timer.dart';
+import '../services/unity_state.dart';
 
 class ARTileMode extends StatefulWidget {
   final Product product;
@@ -50,6 +52,7 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    LoadingTimer.start();
     _textureFuture = TextureCacheService.getOrDownload(widget.product.modelUrl);
     _checkTutorial();
   }
@@ -126,9 +129,18 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
     // Ensure we're in tile mode
     _post('SwitchToTileMode');
 
+    if (UnityState.isReady) {
+      print('Unity already initialized — skipping wait');
+      LoadingTimer.markUnityReady();
+      setState(() => _unityReady = true);
+      _sendTileToUnity();
+      return;
+    }
+
     Future.delayed(const Duration(seconds: 5), () {
       if (!_unityReady && mounted) {
         print('Unity ready timeout — sending tile data anyway');
+        LoadingTimer.markUnityReady();
         setState(() => _unityReady = true);
         _sendTileToUnity();
       }
@@ -148,11 +160,15 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
     switch (msg) {
       case 'OnUnityReady':
         if (!_unityReady && mounted) {
+          UnityState.isReady = true;
+          LoadingTimer.markUnityReady();
           setState(() => _unityReady = true);
           _sendTileToUnity();
         }
         break;
       case 'AssetsReady':
+        LoadingTimer.markAssetsReady();
+        LoadingTimer.save('Tile', widget.product.name);
         if (mounted) setState(() => _assetsReady = true);
         break;
       default:
