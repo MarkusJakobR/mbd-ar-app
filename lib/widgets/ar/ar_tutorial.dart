@@ -179,14 +179,28 @@ class _ARTutorialState extends State<ARTutorial>
                 children: [
                   // Back button
                   _currentStep > 0
-                      ? IconButton(
-                          onPressed: _previousStep,
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.white,
+                      ? GestureDetector(
+                          onTap: _previousStep,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white24,
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: const Text(
+                              'Back',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         )
-                      : const SizedBox(width: 48),
+                      : const SizedBox(width: 72),
 
                   // Step dots
                   Row(
@@ -208,11 +222,25 @@ class _ARTutorialState extends State<ARTutorial>
                   ),
 
                   // Next / Done button
-                  IconButton(
-                    onPressed: _nextStep,
-                    icon: Icon(
-                      _isLastStep ? Icons.check : Icons.arrow_forward_ios,
-                      color: Colors.white,
+                  GestureDetector(
+                    onTap: _nextStep,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2C2A6D),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        _isLastStep ? 'Done' : 'Next',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                   ),
                 ],
