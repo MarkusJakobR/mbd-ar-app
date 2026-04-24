@@ -9,6 +9,7 @@ import 'dart:io';
 import '../services/tutorial_prefs.dart';
 import '../services/loading_timer.dart';
 import '../services/unity_state.dart';
+import '../services/furniture_cache_tracker.dart';
 
 class ARFurnitureMode extends StatefulWidget {
   final Product product;
@@ -143,6 +144,10 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
       case 'AssetsReady':
         LoadingTimer.markAssetsReady();
         LoadingTimer.save('Furniture', widget.product.name);
+        FurnitureCacheTracker.markCached(
+          widget.product.id,
+          widget.product.name,
+        );
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) setState(() => _assetsReady = true);
         });
