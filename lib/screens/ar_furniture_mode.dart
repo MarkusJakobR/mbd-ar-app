@@ -143,7 +143,9 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
       case 'AssetsReady':
         LoadingTimer.markAssetsReady();
         LoadingTimer.save('Furniture', widget.product.name);
-        if (mounted) setState(() => _assetsReady = true);
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) setState(() => _assetsReady = true);
+        });
         break;
       case 'AssetsFailed':
         _showLoadFailedDialog();

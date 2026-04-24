@@ -169,7 +169,9 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
       case 'AssetsReady':
         LoadingTimer.markAssetsReady();
         LoadingTimer.save('Tile', widget.product.name);
-        if (mounted) setState(() => _assetsReady = true);
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) setState(() => _assetsReady = true);
+        });
         break;
       default:
         if (msg.startsWith('TileCount:')) {
