@@ -30,8 +30,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.2129148, y: 1.2129148, z: 1.2129148}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8343474827361444818}
   m_Father: {fileID: 0}
@@ -82,8 +82,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.45, y: 0.45, z: 0.45}
-  m_Center: {x: 0, y: 0.2, z: 0}
+  m_Size: {x: 0.52, y: 0.41223013, z: 0.45}
+  m_Center: {x: 0, y: 0.1961008, z: 0}
 --- !u!114 &2997440317109051646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,7 +211,8 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 1970264799943188103, guid: 588f97e45b03e472fb1889180db05900, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 588f97e45b03e472fb1889180db05900, type: 3}

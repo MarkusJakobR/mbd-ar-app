@@ -10,16 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Default Local Group
+  m_Name: CrossDoorGroup
   m_EditorClassIdentifier: 
-  m_GroupName: Default Local Group
+  m_GroupName: CrossDoorGroup
   m_Data:
     m_SerializedData: []
-  m_GUID: e06c790ca0b7e4f4bab273f0490ea43a
-  m_SerializeEntries: []
+  m_GUID: 34c76f04b05f941e3bbb208462c7a227
+  m_SerializeEntries:
+  - m_GUID: ea58bad53fc314d49a1f3d2e9fbf4955
+    m_Address: cross_door
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: d42755b480ccf447d96503298443270c, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 652dbb126d5f84ce88a77cff1727eb87, type: 2}
-    - {fileID: 11400000, guid: c84b1271f92654478b746748d1a67b8d, type: 2}
+    - {fileID: 11400000, guid: 511e1fd41a00f4ca4859da32f8d50422, type: 2}
+    - {fileID: 11400000, guid: 5a328b81ee0094630bedbbc3f8c5a8e0, type: 2}

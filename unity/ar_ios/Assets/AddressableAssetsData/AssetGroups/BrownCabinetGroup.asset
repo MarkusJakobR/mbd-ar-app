@@ -10,16 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Default Local Group
+  m_Name: BrownCabinetGroup
   m_EditorClassIdentifier: 
-  m_GroupName: Default Local Group
+  m_GroupName: BrownCabinetGroup
   m_Data:
     m_SerializedData: []
-  m_GUID: e06c790ca0b7e4f4bab273f0490ea43a
-  m_SerializeEntries: []
+  m_GUID: d9f04479f591b4fa5a82a93e391210f2
+  m_SerializeEntries:
+  - m_GUID: 8cf050f55e97342b6a559a981828b119
+    m_Address: brown_cabinet
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: d42755b480ccf447d96503298443270c, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 652dbb126d5f84ce88a77cff1727eb87, type: 2}
-    - {fileID: 11400000, guid: c84b1271f92654478b746748d1a67b8d, type: 2}
+    - {fileID: 11400000, guid: 710c3d3e418cd4df4b160e27eaf47125, type: 2}
+    - {fileID: 11400000, guid: 91236d81e13624063a8e35139f8225f3, type: 2}

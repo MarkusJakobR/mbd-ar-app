@@ -10,16 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Default Local Group
+  m_Name: MarbleRoundTableGroup
   m_EditorClassIdentifier: 
-  m_GroupName: Default Local Group
+  m_GroupName: MarbleRoundTableGroup
   m_Data:
     m_SerializedData: []
-  m_GUID: e06c790ca0b7e4f4bab273f0490ea43a
-  m_SerializeEntries: []
+  m_GUID: a9bfab071711c4d8bb2d769760fca757
+  m_SerializeEntries:
+  - m_GUID: 49632d1ba878e497bb406beff2d74248
+    m_Address: marble_round_table
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: d42755b480ccf447d96503298443270c, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 652dbb126d5f84ce88a77cff1727eb87, type: 2}
-    - {fileID: 11400000, guid: c84b1271f92654478b746748d1a67b8d, type: 2}
+    - {fileID: 11400000, guid: 1ca6f999544094630917deed63e2c604, type: 2}
+    - {fileID: 11400000, guid: 28b57ad36fe90472d9ee5248b740ce36, type: 2}
