@@ -230,13 +230,13 @@ class _ARTutorialState extends State<ARTutorial>
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2C2A6D),
+                        color: const Color(0xFFF9BE2C),
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: Text(
                         _isLastStep ? 'Done' : 'Next',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
