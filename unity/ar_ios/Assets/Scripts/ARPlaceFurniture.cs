@@ -324,7 +324,6 @@ public class ARPlaceFurniture : MonoBehaviour
 
             Pose hitPose = hit.pose;
             var newObject = Instantiate(furniturePrefab, hitPose.position, Quaternion.identity);
-            ApplyWallRotationIfNeeded(hitPose, newObject);
 
             // Add selection indicator to spawned object
             newObject.AddComponent<SelectionIndicator>();
@@ -335,15 +334,17 @@ public class ARPlaceFurniture : MonoBehaviour
             _hasPlacedFirstObject = true;
 
             // Delay select by one frame so SelectionIndicator.Start() runs first
-            StartCoroutine(SelectNextFrame(newObject));
+            StartCoroutine(InitializeObjectNextFrame(newObject, hitPose));
         }
     }
 
-    IEnumerator SelectNextFrame(GameObject obj)
+    IEnumerator InitializeObjectNextFrame(GameObject obj, Pose hitPose)
     {
-        yield return null; // wait one frame
-        yield return null; // wait one frame
-        yield return null; // wait one frame
+        yield return null;
+        yield return null;
+        yield return null;
+
+        // Then select
         _selector.Select(obj);
     }
 
