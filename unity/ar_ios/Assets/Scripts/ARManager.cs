@@ -107,12 +107,6 @@ public class ARManager : MonoBehaviour
         SendToFlutter($"LockState:{isLocked.ToString().ToLower()}");
     }
 
-    public void InitializeAddressables(string message)
-    {
-        if (!isInitialized)
-            StartCoroutine(InitializeAddressablesCoroutine());
-    }
-
     IEnumerator InitializeAddressablesCoroutine()
     {
         Debug.Log("Initializing Addressables...");
@@ -145,6 +139,13 @@ public class ARManager : MonoBehaviour
             _LoadProduct(_pendingProduct);
             _pendingProduct = null;
         }
+    }
+
+    public void CheckIfReady(string message)
+    {
+        Debug.Log($"CheckIfReady called, isInitialized: {isInitialized}");
+        if (isInitialized)
+            SendToFlutter("OnUnityReady");
     }
 
     public void OnTileSelected(string jsonMessage)

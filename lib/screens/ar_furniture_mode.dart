@@ -43,6 +43,10 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     LoadingTimer.start();
+
+    if (UnityState.isReady) {
+      _unityReady = true;
+    }
     _checkTutorial();
   }
 
@@ -103,20 +107,21 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
 
   void onUnityCreated(UnityWidgetController controller) {
     _unityController = controller;
-    print('Unity loaded for ${widget.product.name} (Furniture Mode)');
-
     _startCamera();
 
     // Ensure we're in furniture mode
     _post('SwitchToFurnitureMode');
 
+    // check if unity already initialized
     if (UnityState.isReady) {
-      print('Unity already initialized — skipping wait');
       LoadingTimer.markUnityReady();
       setState(() => _unityReady = true);
       _sendProductToUnity();
       return;
     }
+
+    // periodically ask unity if its ready
+    _startReadyPolling();
 
     // Fallback
     Future.delayed(const Duration(seconds: 5), () {
@@ -126,6 +131,17 @@ class _ARFurnitureModeState extends State<ARFurnitureMode>
         _sendProductToUnity();
       }
     });
+  }
+
+  void _startReadyPolling() {
+    // Poll every 1 second for up to 8 seconds
+    for (int i = 1; i <= 8; i++) {
+      Future.delayed(Duration(seconds: i), () {
+        if (!_unityReady && mounted) {
+          _post('CheckIfReady');
+        }
+      });
+    }
   }
 
   void onUnityMessage(dynamic message) {

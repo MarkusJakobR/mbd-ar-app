@@ -53,6 +53,9 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     LoadingTimer.start();
+    if (UnityState.isReady) {
+      _unityReady = true;
+    }
     _textureFuture = TextureCacheService.getOrDownload(widget.product.modelUrl);
     _checkTutorial();
   }
@@ -122,29 +125,41 @@ class _ARTileModeState extends State<ARTileMode> with WidgetsBindingObserver {
 
   void onUnityCreated(UnityWidgetController controller) {
     _unityController = controller;
-    print('Unity loaded for ${widget.product.name} (Tile Mode)');
-
     _startCamera();
 
     // Ensure we're in tile mode
     _post('SwitchToTileMode');
 
+    // check if unity already initialized
     if (UnityState.isReady) {
-      print('Unity already initialized — skipping wait');
       LoadingTimer.markUnityReady();
       setState(() => _unityReady = true);
       _sendTileToUnity();
       return;
     }
 
+    // periodically ask unity if its ready
+    _startReadyPolling();
+
+    // fallback timer if onunityready was not received
     Future.delayed(const Duration(seconds: 5), () {
       if (!_unityReady && mounted) {
-        print('Unity ready timeout — sending tile data anyway');
         LoadingTimer.markUnityReady();
         setState(() => _unityReady = true);
         _sendTileToUnity();
       }
     });
+  }
+
+  void _startReadyPolling() {
+    // Poll every 1 second for up to 8 seconds
+    for (int i = 1; i <= 8; i++) {
+      Future.delayed(Duration(seconds: i), () {
+        if (!_unityReady && mounted) {
+          _post('CheckIfReady');
+        }
+      });
+    }
   }
 
   void onUnityMessage(dynamic message) {
