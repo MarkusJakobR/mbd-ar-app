@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: SteelCabinetGroup
+  m_EditorClassIdentifier: 
+  m_GroupName: SteelCabinetGroup
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 6d3089914d666420689b46cfaca51da0
+  m_SerializeEntries:
+  - m_GUID: e02f205a5ef8245f499e42e5587da40c
+    m_Address: steel_cabinet
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: d42755b480ccf447d96503298443270c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 38802c79c363f407eaa48318203728f1, type: 2}
+    - {fileID: 11400000, guid: 8ae49dcab64ad416ca1bc8d5bf5f82c4, type: 2}

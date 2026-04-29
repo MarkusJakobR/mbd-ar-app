@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../widgets/product_card.dart';
 import '../services/favorites_service.dart';
+import '../widgets/product_grid.dart';
 
 class SearchPage extends StatefulWidget {
   final List<Product> products;
@@ -140,20 +140,9 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
 
-    // Results grid
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: _results.length,
-      itemBuilder: (context, index) => ProductCard(
-        product: _results[index],
-        favoritesService: widget.favoritesService,
-      ),
+    return ProductGrid(
+      products: _results,
+      favoritesService: widget.favoritesService,
     );
   }
 }
